@@ -3,154 +3,360 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pipeline Integrity Assessment Tool</title>
+    <title>Pipeline Integrity Assessment Tool | Pipeliner</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html-to-pdfmake/browser.js"></script>
     
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="./manifest.json">
 
     <style>
-        /* --- THEME VARIABLES --- */
+        /* --- THEME VARIABLES (Glassmorphism System) --- */
         :root {
-            --bg-body: #0f172a; --bg-card: #1e293b; --bg-input: #0f172a;
-            --text-main: #e2e8f0; --text-muted: #94a3b8; --border-color: #334155;
-            --accent-color: #3b82f6; --accent-hover: #2563eb; --highlight: #f59e0b;
-            --success-bg: rgba(6, 78, 59, 0.4); --success-border: #34d399; --success-text: #34d399;
-            --danger-bg: rgba(127, 29, 29, 0.4); --danger-border: #f87171; --danger-text: #f87171;
-            --shadow: rgba(0,0,0,0.3);
+            color-scheme: dark; 
+
+            /* Dark Theme (Default) */
+            --bg-base: #070F15;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(0, 0, 0, 0.2);
+            --input-border: rgba(255, 255, 255, 0.15);
+            --metric-bg: rgba(255, 255, 255, 0.02);
+            
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --accent-teal: #00A5A8; 
+            --accent-orange: #F37021;
+            
+            --success-bg: rgba(52, 211, 153, 0.15);
+            --success-border: rgba(52, 211, 153, 0.3);
+            --success-text: #34d399;
+
+            --danger-bg: rgba(239, 68, 68, 0.15);
+            --danger-border: rgba(239, 68, 68, 0.3);
+            --danger-text: #f87171;
+            
+            --warn-bg: rgba(245, 158, 11, 0.15);
+            --warn-border: rgba(245, 158, 11, 0.3);
+            --warn-text: #fbbf24;
+            
+            --glow-1: rgba(0, 165, 168, 0.2);
+            --glow-2: rgba(243, 112, 33, 0.15);
+            --grad-base: #FFFFFF;
+            --footer-bg: rgba(7, 15, 21, 0.8);
         }
+
         [data-theme="light"] {
-            --bg-body: #f8fafc; --bg-card: #ffffff; --bg-input: #f1f5f9;
-            --text-main: #0f172a; --text-muted: #64748b; --border-color: #cbd5e1;
-            --accent-color: #2563eb; --accent-hover: #1d4ed8; --highlight: #d97706;
-            --success-bg: #dcfce7; --success-border: #86efac; --success-text: #15803d;
-            --danger-bg: #fee2e2; --danger-border: #fca5a5; --danger-text: #b91c1c;
-            --shadow: rgba(0,0,0,0.1);
+            color-scheme: light; 
+
+            /* Light Theme */
+            --bg-base: #F8FAFC;
+            --card-bg: rgba(255, 255, 255, 0.6);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --input-bg: rgba(255, 255, 255, 0.8);
+            --input-border: rgba(0, 0, 0, 0.15);
+            --metric-bg: rgba(255, 255, 255, 0.5);
+            
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --accent-teal: #008082; 
+            --accent-orange: #E05D0F; 
+            
+            --success-bg: #ecfdf5;
+            --success-border: #a7f3d0;
+            --success-text: #059669;
+
+            --danger-bg: #fee2e2;
+            --danger-border: #fca5a5;
+            --danger-text: #dc2626;
+
+            --warn-bg: #fffbeb;
+            --warn-border: #fde68a;
+            --warn-text: #d97706;
+
+            --glow-1: rgba(0, 165, 168, 0.15);
+            --glow-2: rgba(243, 112, 33, 0.1);
+            --grad-base: #0F172A;
+            --footer-bg: rgba(248, 250, 252, 0.8);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-body); color: var(--text-main); padding: 20px; line-height: 1.5; transition: 0.3s; }
-        .container { width: 100%; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; border-radius: 8px; }
-        .col-inputs, .col-results { display: flex; flex-direction: column; gap: 15px; }
+        /* --- GLOBAL RESET --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        html, body { max-width: 100%; overflow-x: hidden; }
 
-        /* --- MOBILE RESPONSIVENESS --- */
-        @media (max-width: 900px) { 
-            .container { grid-template-columns: 1fr; padding: 0; } 
-        }
-        @media (max-width: 600px) {
-            body { padding: 12px; }
-            .dashboard-grid { grid-template-columns: 1fr; gap: 10px; }
-            .grid-2 { grid-template-columns: 1fr; gap: 10px; }
-            .header-title h1 { font-size: 1.1rem; }
-            .header-title p { font-size: 0.75rem; }
-            .dash-value { font-size: 1.8rem; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
 
-        /* --- HEADER & MENU --- */
-        .header-bar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 10px; }
-        .header-title h1 { font-size: 1.25rem; font-weight: 700; }
-        .header-title p { font-size: 0.85rem; color: var(--text-muted); }
-        .controls-right { display: flex; gap: 10px; align-items: center; }
-        .btn-icon { background: transparent; border: 1px solid transparent; color: var(--text-muted); font-size: 1.2rem; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn-icon:hover { background: var(--bg-card); color: var(--text-main); border-color: var(--border-color); }
+        /* --- AMBIENT GLOWS --- */
+        .ambient-glow {
+            position: absolute; border-radius: 50%; filter: blur(120px);
+            z-index: -1; pointer-events: none; transition: background 0.5s ease;
+        }
+        .glow-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: radial-gradient(circle, var(--glow-1) 0%, transparent 70%); }
+        .glow-2 { bottom: 0; right: -10%; width: 40vw; height: 40vw; background: radial-gradient(circle, var(--glow-2) 0%, transparent 70%); }
+
+        /* --- LAYOUT & HEADER --- */
+        .container {
+            width: 100%; max-width: 1200px; margin: 0 auto;
+            padding: 2.5rem 2rem 6rem 2rem; position: relative; z-index: 1; flex-grow: 1;
+        }
+        header { margin-bottom: 2rem; text-align: center; }
+        header h1 {
+            font-size: 3rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 0.5rem; line-height: 1.3;
+            background: linear-gradient(to right, var(--grad-base) 20%, var(--accent-teal) 50%, var(--accent-orange) 80%, var(--grad-base) 100%);
+            background-size: 400% auto; color: transparent; background-clip: text; -webkit-background-clip: text;
+            animation: textSweep 12s linear infinite; text-shadow: 0 10px 30px rgba(0, 165, 168, 0.1);
+        }
+        @keyframes textSweep { to { background-position: 400% center; } }
+        .tagline { color: var(--text-secondary); font-size: 1.1rem; font-weight: 400; }
+
+        /* --- THEME TOGGLE & MENU --- */
+        .header-controls {
+            position: absolute;
+            top: 2.5rem; right: 2rem;
+            display: flex; gap: 1rem;
+            z-index: 100;
+        }
+
+        .icon-btn {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            color: var(--text-primary); width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            transition: all 0.3s ease; outline: none; font-size: 1.1rem;
+        }
+        .icon-btn:hover { transform: scale(1.1); border-color: var(--accent-teal); color: var(--accent-teal); }
+        .sun-icon { opacity: 0; transform: rotate(-90deg) scale(0.5); position: absolute; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 20px; height: 20px;}
+        .moon-icon { opacity: 1; transform: rotate(0) scale(1); position: absolute; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 20px; height: 20px;}
+        [data-theme="light"] .sun-icon { opacity: 1; transform: rotate(0) scale(1); }
+        [data-theme="light"] .moon-icon { opacity: 0; transform: rotate(90deg) scale(0.5); }
 
         .menu-container { position: relative; }
-        .menu-dropdown { display: none; position: absolute; right: 0; top: 50px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; width: 220px; z-index: 50; box-shadow: 0 10px 15px -3px var(--shadow); }
+        .menu-dropdown {
+            display: none; position: absolute; right: 0; top: 55px;
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 12px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
+            width: 220px; z-index: 50; overflow: hidden;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        }
         .menu-dropdown.show { display: block; }
-        .menu-item { padding: 12px 16px; color: var(--text-main); cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; border-bottom: 1px solid var(--border-color); }
-        .menu-item:hover { background: var(--border-color); }
+        .menu-item {
+            padding: 12px 16px; color: var(--text-primary); cursor: pointer;
+            display: flex; align-items: center; gap: 10px; font-size: 0.9rem;
+            border-bottom: 1px solid var(--card-border); transition: all 0.2s;
+        }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item:hover { background: rgba(0, 165, 168, 0.1); color: var(--accent-teal); }
+        .menu-item i { width: 20px; text-align: center; color: var(--accent-teal); }
 
-        /* --- CARDS & INPUTS --- */
-        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; box-shadow: 0 4px 6px var(--shadow); }
-        .section-header { color: var(--highlight); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .input-group { margin-bottom: 10px; }
-        .input-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+        /* --- GRID & CARDS --- */
+        .layout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; min-width: 0; }
+        .col-inputs, .col-results { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
         
-        .input-wrapper { display: flex; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; transition: 0.2s; }
-        .input-wrapper:focus-within { border-color: var(--accent-color); }
-        .input-field { flex: 1; width: 100%; background: transparent; border: none; color: var(--text-main); padding: 8px 12px; font-family: monospace; font-size: 0.95rem; }
-        .input-field:focus { outline: none; }
+        @media (max-width: 900px) { .layout-grid { grid-template-columns: 1fr; } }
         
-        .modern-select { background: var(--bg-card); color: var(--text-muted); border: none; border-left: 1px solid var(--border-color); padding: 0 12px; font-size: 0.8rem; cursor: pointer; }
-        .select-primary { flex: 1; width: 100%; background: transparent; border: none; color: var(--text-main); padding: 8px 12px; font-family: monospace; font-size: 0.95rem; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 10px auto; }
+        /* Mobile Spacing Optimizations */
+        @media (max-width: 768px) { 
+            .container { padding: 1rem 0.5rem 6rem 0.5rem; } 
+            .header-controls { top: 1rem; right: 0.5rem; }
+            header { margin-top: 3.5rem; margin-bottom: 1.5rem; }
+            header h1 { font-size: 2.2rem; } 
+        }
+        @media (max-width: 600px) {
+            .grid-2 { grid-template-columns: 1fr !important; }
+            .card { padding: 1rem 0.75rem; } 
+            .dash-card { padding: 1rem 0.75rem; }
+            .section-header { margin-bottom: 0.8rem; }
+            .layout-grid { gap: 1rem; }
+            .col-inputs, .col-results { gap: 1rem; }
+        }
 
-        /* --- OUTPUT CARDS & TABLES --- */
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 5px; } 
-        .dash-card { padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center; display: flex; flex-direction: column; gap: 5px; transition: background-color 0.3s; }
-        .dash-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-main); opacity: 0.8; }
-        .dash-value { font-size: 2.2rem; font-weight: 700; color: var(--text-main); font-family: monospace; }
-        .dash-unit { font-size: 0.85rem; color: var(--text-main); opacity: 0.8; }
+        .card {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 16px; padding: 1.5rem; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1); transition: all 0.4s ease;
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, var(--accent-teal), var(--accent-orange)); opacity: 0.7;
+        }
+        .card:hover { border-color: rgba(0, 165, 168, 0.3); box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); }
+        [data-theme="dark"] .card:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.15); box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5); }
 
-        .dash-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        .dash-table th { text-align: left; padding: 10px; border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-weight: 600; }
-        .dash-table td { padding: 10px; border-bottom: 1px solid var(--border-color); }
+        .section-header {
+            font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--accent-teal); border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;
+        }
 
-        /* --- MODALS & UTILS --- */
+        /* --- INPUTS & FORMS --- */
+        .grid-2 { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 0.8rem; 
+            margin-bottom: 0.8rem; /* Gives the grid itself bottom spacing */
+        }
+        
+        .input-group { 
+            margin-bottom: 0.8rem; 
+        }
+        
+        /* 1. Prevent double-spacing inside grid layouts */
+        .grid-2 .input-group { 
+            margin-bottom: 0; 
+        }
+        
+        /* 2. Prevent the last item from distorting the card's bottom padding */
+        .card > .input-group:last-child, 
+        .card > .grid-2:last-child { 
+            margin-bottom: 0; 
+        }
+
+        .input-group label { 
+            display: block; 
+            color: var(--text-secondary); 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            margin-bottom: 4px; 
+        }
+        
+        .input-wrapper {
+            display: flex; background: var(--input-bg); border: 1px solid var(--input-border);
+            border-radius: 8px; overflow: hidden; transition: all 0.3s ease; align-items: stretch;
+        }
+        .input-wrapper:focus-within { border-color: var(--accent-teal); box-shadow: 0 0 0 3px rgba(0, 165, 168, 0.15); }
+        .input-field {
+            flex: 1; width: 100%; background: transparent; border: none; color: var(--text-primary);
+            padding: 8px 12px; font-family: 'Plus Jakarta Sans', monospace; font-size: 0.95rem; font-weight: 500; outline: none; min-width: 0;
+        }
+
+        select option { background-color: var(--bg-base); color: var(--text-primary); }
+
+        .modern-select {
+            flex: 0 0 auto; appearance: none; -webkit-appearance: none; background: transparent;
+            color: var(--text-secondary); border: none; border-left: 1px solid var(--input-border);
+            padding: 0 12px; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-align: center; outline: none;
+        }
+
+        .select-primary {
+            flex: 1; width: 100%; background: transparent; border: none; color: var(--text-primary);
+            padding: 8px 12px; font-size: 0.95rem; font-weight: 500; appearance: none; -webkit-appearance: none; cursor: pointer; outline: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 12px center;
+        }
+
+        .unit-label-static { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; background: transparent; border-left: 1px solid var(--input-border); color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; padding: 0 12px; }
+
+        /* --- DASHBOARD RESULTS --- */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.5rem; }
+
+        .dash-card { 
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; 
+            padding: 1.2rem; display: flex; flex-direction: column; justify-content: center; 
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; 
+            overflow: hidden; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1); 
+            text-align: center; transition: background-color 0.4s, border-color 0.4s;
+        }
+        .dash-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; opacity: 0.8; }
+        
+        /* Dynamic state borders applied via JS */
+        .state-safe::before { background: linear-gradient(90deg, #10b981, #34d399); }
+        .state-danger::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+        .state-neutral::before { background: linear-gradient(90deg, var(--accent-teal), var(--accent-orange)); }
+
+        .dash-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.5px; color: var(--text-secondary);}
+        .dash-value { font-size: 2rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; line-height: 1.1; }
+        .dash-unit { font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; margin-top: 4px;}
+
+        /* --- DATA TABLES --- */
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 5px; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 100%; }
+        .data-table th { text-align: left; color: var(--text-secondary); background: var(--metric-bg); padding: 10px 8px; border-bottom: 1px solid var(--card-border); font-weight: 600;}
+        .data-table td { padding: 10px 8px; border-bottom: 1px solid var(--card-border); color: var(--text-primary); white-space: nowrap; }
+        
+        .btn-outline { background: transparent; border: 1px dashed var(--accent-teal); color: var(--accent-teal); padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.3s; width: 100%; margin-top: 15px;}
+        .btn-outline:hover { background: var(--accent-teal); color: #fff; }
+
+        /* --- MODALS & EXTRAS --- */
         #excel-upload { display: none; }
-        #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 4px; padding: 16px; position: fixed; z-index: 1001; left: 50%; bottom: 30px; transform: translateX(-50%); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; width: 90%; max-width: 600px; padding: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); backdrop-filter: blur(20px); max-height: 85vh; overflow-y: auto;}
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--card-border); padding-bottom: 10px; }
+        .modal-title { color: var(--text-primary); font-weight: 700; font-size: 1.1rem; }
+        .modal-close { background: transparent; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; transition: 0.2s;}
+        .modal-close:hover { color: var(--text-primary); }
+
+        .scenario-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--card-border); background: var(--metric-bg); border-radius: 6px; margin-bottom: 5px;}
+        .btn-action { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-primary); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: 0.2s;}
+        .btn-action:hover { background: var(--accent-teal); border-color: var(--accent-teal); color: #fff;}
+
+        #toast { visibility: hidden; min-width: 250px; background: var(--accent-teal); color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 1001; left: 50%; bottom: 30px; transform: translateX(-50%); font-weight: 600; box-shadow: 0 10px 20px rgba(0,0,0,0.2);}
         #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
-        
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; width: 90%; max-width: 500px; padding: 20px; }
-        .scenario-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
-        /* --- COPYRIGHT SCROLL ANIMATION --- */
-        #copyright-scroll {
-            display: block;
-            width: 100%;
-            text-align: center;
-            padding: 6px 0 10px;
-            margin-top: 35px;
-            font-size: 0.75rem;
-            color: #94a3b8;
-            font-family: monospace;
-            overflow: hidden;
-        }
 
-        #copyright-scroll .copyright-inner {
-            display: inline-block;
-            padding-left: 100%;
-            white-space: nowrap;
-            animation: scrollText 18s linear infinite;
-            opacity: 0.75;
-        }
+        /* --- SCROLLING FOOTER --- */
+        footer { padding: 1.5rem 2rem; background: var(--footer-bg); backdrop-filter: blur(10px); z-index: 10; position: relative; border-top: 1px solid var(--card-border); display: flex; align-items: center; overflow: hidden; }
+        footer::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--accent-teal), var(--accent-orange), transparent); animation: footerPulse 6s linear infinite; }
+        @keyframes footerPulse { 0% { left: -100%; } 100% { left: 100%; } }
+        .scrolling-wrapper { flex-grow: 1; overflow: hidden; white-space: nowrap; position: relative; mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%); }
+        .scrolling-content { display: inline-block; animation: tickerScroll 25s linear infinite; }
+        .scrolling-wrapper:hover .scrolling-content { animation-play-state: paused; }
+        .scrolling-content span { display: inline-flex; padding-right: 100vw; font-size: 0.95rem; font-weight: 500; letter-spacing: 0.5px; background: linear-gradient(to right, var(--text-primary) 20%, var(--accent-teal) 50%, var(--accent-orange) 80%, var(--text-primary) 100%); background-size: 300% auto; color: transparent; background-clip: text; -webkit-background-clip: text; animation: footerTextSweep 8s linear infinite; }
+        @keyframes footerTextSweep { to { background-position: 300% center; } }
+        @keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-        /* Optional: Pause animation when hovered */
-        #copyright-scroll:hover .copyright-inner {
-            animation-play-state: paused;
-            opacity: 1;
-            cursor: default;
-        }
-
-        @keyframes scrollText {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-100%); }
-        }
-
-        /* Hide footer in print/PDF view */
         @media print {
-            #copyright-scroll { display: none !important; }
+            body { background: white; color: black; margin: 0; padding: 0; overflow: visible; }
+            .header-controls, .ambient-glow, footer, .btn-outline, #modal-scenarios, #modal-explanation { display: none !important; }
         }
     </style>
 </head>
 <body>
 
-<div class="container" id="pdf-export-area">
-    <div class="header-bar">
-        <div class="header-title">
-            <h1>Pipeline Integrity Assessment</h1>
-            <p>ASME B31G / RSTRENG / Kastner / NG-18</p>
-        </div>
-        <div class="controls-right" data-html2canvas-ignore> 
-            <button class="btn-icon" id="theme-toggle" onclick="toggleTheme()"><i class="fas fa-sun"></i></button>
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <main class="container" id="pdf-export-area">
+        
+        <div class="header-controls" data-html2canvas-ignore>
+            <button id="themeToggle" class="icon-btn" aria-label="Toggle Theme">
+                <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+
             <div class="menu-container">
-                <button class="btn-icon" onclick="toggleMenu()"><i class="fas fa-ellipsis-v"></i></button>
+                <button class="icon-btn" onclick="toggleMenu()" title="Menu">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
                 <div class="menu-dropdown" id="main-menu">
                     <div class="menu-item" onclick="handleMenuAction('scenario')"><i class="fas fa-folder-open"></i> Scenarios</div>
                     <div class="menu-item" onclick="document.getElementById('excel-upload').click()"><i class="fas fa-file-excel"></i> Batch Upload</div>
@@ -162,382 +368,445 @@
             </div>
             <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv">
         </div>
-    </div>
-    
-    <div class="col-inputs">
-        <div class="card">
-            <div class="section-header">Strategy & Methodology</div>
-            <div class="input-group">
-                <label>Assessment Method</label>
-                <div class="input-wrapper">
-                    <select id="sel-method" class="select-primary calc-trigger">
-                        <option value="b31g_orig">ASME B31G (Original Level 0/1a)</option>
-                        <option value="b31g_mod" selected>Modified ASME B31G (Level 1b)</option>
-                        <option value="rstreng">RSTRENG (Level 2a Effective Area)</option>
-                        <option value="kastner">Kastner</option>
-                        <option value="ng18">NG-18 (Gouge)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="grid-2">
-                <div class="input-group">
-                    <label>Safety Factor (SF)</label>
-                    <div class="input-wrapper"><input type="number" id="SF" class="input-field calc-trigger" value="1.39" step="0.01"></div>
-                </div>
-                <div class="input-group">
-                    <label>Tool Tolerance (% wt)</label>
-                    <div class="input-wrapper"><input type="number" id="Tol" class="input-field calc-trigger" value="10"></div>
-                </div>
-            </div>
-        </div>
 
-        <div class="card">
-            <div class="section-header">Pipe Properties</div>
-            <div class="grid-2">
-                <div class="input-group">
-                    <label>NPS</label>
-                    <div class="input-wrapper"><select id="sel-nps" class="select-primary"><option value="" disabled selected>Loading...</option></select></div>
-                </div>
-                <div class="input-group">
-                    <label>Std. WT (Ref)</label>
-                    <div class="input-wrapper"><select id="sel-std-wt" class="select-primary"><option value="" disabled selected>Loading...</option></select></div>
-                </div>
-            </div>
-            <div class="grid-2">
-                <div class="input-group">
-                    <label>Diameter (D)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="D" class="input-field calc-trigger" value="36">
-                        <select id="sel-od-unit" class="modern-select unit-change-trigger" data-input="D" data-type="length">
-                            <option value="inch">inch</option><option value="mm">mm</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>Thickness (t)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="t" class="input-field calc-trigger" value="15.9">
-                        <select id="sel-wt-unit" class="modern-select unit-change-trigger" data-input="t,L,c_len" data-type="length">
-                            <option value="mm">mm</option><option value="inch">inch</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="input-group">
-                <label>MAOP</label>
-                <div class="input-wrapper">
-                    <input type="number" id="MAOP" class="input-field calc-trigger" value="92">
-                    <select id="sel-press-unit" class="modern-select unit-change-trigger" data-input="MAOP" data-type="pressure">
-                        <option value="kgcm2" selected>kg/cm²</option><option value="bar">bar</option><option value="psi">psi</option><option value="MPa">MPa</option>
-                    </select>
-                </div>
-            </div>
-        </div>
+        <header>
+            <h1>Integrity Assessment</h1>
+            <p class="tagline">ASME B31G / RSTRENG / Kastner / NG-18</p>
+        </header>
 
-        <div class="card">
-            <div class="section-header">Material Grades</div>
-            <div class="input-group">
-                <label>API 5L Grade</label>
-                <div class="input-wrapper"><select id="sel-grade" class="select-primary"><option value="" disabled selected>Loading...</option></select></div>
-            </div>
-            <div class="grid-2">
-                <div class="input-group">
-                    <label>SMYS (MPa)</label>
-                    <div class="input-wrapper"><input type="number" id="SMYS" class="input-field calc-trigger" value="483"></div>
-                </div>
-                <div class="input-group">
-                    <label>UTS (MPa)</label>
-                    <div class="input-wrapper"><input type="number" id="UTS" class="input-field calc-trigger" value="565"></div>
-                </div>
-            </div>
-        </div>
+        <div id="validation-console"></div>
 
-        <div class="card" style="border-color: var(--highlight);">
-            <div class="section-header" style="color: var(--highlight); border-bottom-color: var(--highlight);">Anomaly Dimensions</div>
+        <div class="layout-grid">
             
-            <div class="grid-2">
-                <div class="input-group">
-                    <label>Max Depth (Absolute)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="d" class="input-field" value="5.5">
-                        <div class="unit-label-wt" style="padding:10px; font-size:0.8rem; color: var(--text-muted); background: var(--bg-card);">mm</div>
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>Max Depth (%)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="d_pct" class="input-field" placeholder="e.g. 35">
-                        <div style="padding:10px; font-size:0.8rem; color: var(--text-muted); background: var(--bg-card);">%</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid-2">
-                <div class="input-group">
-                    <label>Length (L)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="L" class="input-field calc-trigger" value="150">
-                        <div class="unit-label-wt" style="padding:10px; font-size:0.8rem; color: var(--text-muted); background: var(--bg-card);">mm</div>
-                    </div>
-                </div>
-                <div id="grp-circ-len" class="input-group" style="display:none;">
-                    <label>Circ. Length (2c)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="c_len" class="input-field calc-trigger" value="50">
-                        <div class="unit-label-wt" style="padding:10px; font-size:0.8rem; color: var(--text-muted); background: var(--bg-card);">mm</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="grp-rstreng" class="input-group" style="display:none;">
-                <label>River Bottom Profile (CSV depths: d1, d2, d3...)</label>
-                <div class="input-wrapper">
-                    <input type="text" id="rbp_profile" class="input-field calc-trigger" placeholder="e.g. 1.2, 3.5, 5.5, 2.1">
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-results">
-        <div class="dashboard-grid">
-            <div class="dash-card" id="card-pf">
-                <div class="dash-label">Est. Failure Pressure (Pf)</div>
-                <div class="dash-value" id="res-pf">0.00</div>
-                <div class="dash-unit unit-label-press">kg/cm²</div>
-            </div>
-            <div class="dash-card" id="card-psafe">
-                <div class="dash-label" id="lbl-status">Safe Pressure (Psafe)</div>
-                <div class="dash-value" id="res-psafe">0.00</div>
-                <div class="dash-unit unit-label-press">kg/cm²</div>
-            </div>
-        </div>
-
-        <div class="card" id="chart-container" style="display:none;">
-            <div class="section-header">River Bottom Profile Visualization</div>
-            <canvas id="rbpChart" height="150"></canvas>
-        </div>
-
-        <div class="card">
-            <div class="section-header">Safe Length vs. Depth Acceptance Curve</div>
-            <canvas id="acceptanceChart" height="200"></canvas>
-            <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 5px;">
-                *Area below curves = "Safe" (Pf ≥ MAOP × SF). Marker indicates current anomaly.
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="section-header">Method Verification Table</div>
-            <div style="overflow-x:auto;">
-                <table class="dash-table">
-                    <thead>
-                        <tr>
-                            <th>Method</th>
-                            <th>Pf</th>
-                            <th>Psafe</th>
-                            <th>ERF</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="result-body"></tbody>
-                </table>
-            </div>
-            <button onclick="document.getElementById('modal-explanation').style.display='flex'" style="margin-top: 15px; background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; width: 100%; transition: 0.2s;" data-html2canvas-ignore>
-                <i class="fas fa-info-circle"></i> How to interpret these results?
-            </button>
-        </div>
-    </div>
-</div>
-
-<div id="modal-scenarios" class="modal-overlay" data-html2canvas-ignore>
-    <div class="modal-content">
-        <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-            <span style="font-weight:700; color:var(--text-main);">Scenario Manager</span>
-            <button onclick="closeModal()" style="background:transparent; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">&times;</button>
-        </div>
-        <div class="input-wrapper" style="margin-bottom:10px;">
-            <input type="text" id="scenario-name" class="input-field" placeholder="Scenario Name" style="background:var(--bg-input);">
-            <button onclick="saveScenario()" style="width: auto; background: var(--accent-color); color:white; border:none; padding:0 15px; cursor:pointer; border-radius:0 4px 4px 0;">Save</button>
-        </div>
-        <div id="list-scenarios" style="max-height:300px; overflow-y:auto; border:1px solid var(--border-color); border-radius:4px;"></div>
-    </div>
-</div>
-
-<div id="modal-explanation" class="modal-overlay" data-html2canvas-ignore>
-    <div class="modal-content" style="max-width: 750px; max-height: 85vh; overflow-y: auto;">
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-color); padding-bottom:10px; margin-bottom:15px;">
-            <span style="font-weight:700; color:var(--text-main);"><i class="fas fa-calculator"></i> Step-by-Step Calculation Breakdown</span>
-            <button onclick="document.getElementById('modal-explanation').style.display='none'" style="background:transparent; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">&times;</button>
-        </div>
-        <div id="dynamic-calc-content" style="font-size: 0.85rem; color: var(--text-main); line-height: 1.6; font-family: monospace;"></div>
-    </div>
-</div>
-
-<div id="toast" data-html2canvas-ignore>Action Successful!</div>
-
-<script>
-    // --- 1. DATA & CONSTANTS ---
-    const IN_TO_MM = 25.4;
-    const PSI_TO_MPA = 0.00689476;
-    const BAR_TO_MPA = 0.1;
-    const KGCM2_TO_MPA = 0.0980665;
-
-    const NPS_DATA = { "4": 4.5, "6": 6.625, "8": 8.625, "10": 10.75, "12": 12.75, "14": 14.0, "16": 16.0, "18": 18.0, "20": 20.0, "22": 22.0, "24": 24.0, "26": 26.0, "28": 28.0, "30": 30.0, "32": 32.0, "34": 34.0, "36": 36.0, "40": 40.0, "42": 42.0, "48": 48.0 };
-    const STD_WALLS = [4.8, 5.6, 6.4, 7.1, 7.9, 8.7, 9.5, 10.3, 11.1, 12.7, 14.3, 15.9, 17.5, 19.1, 20.6, 22.2, 25.4];
-    const API_GRADES = { "A25": { smys: 172, uts: 310 }, "A": { smys: 207, uts: 331 }, "B": { smys: 241, uts: 414 }, "X42": { smys: 290, uts: 414 }, "X46": { smys: 317, uts: 434 }, "X52": { smys: 359, uts: 455 }, "X56": { smys: 386, uts: 490 }, "X60": { smys: 414, uts: 517 }, "X65": { smys: 448, uts: 531 }, "X70": { smys: 483, uts: 565 }, "X80": { smys: 552, uts: 621 } };
-
-    const lastUnits = { 'sel-od-unit': 'inch', 'sel-wt-unit': 'mm', 'sel-press-unit': 'kgcm2' };
-    let rbpChartInstance = null; 
-    let acceptanceChartInstance = null;
-
-    // --- 2. UNIT CONVERTERS & DEPTH SYNC LOGIC ---
-    const converters = {
-        length: { toBase: (v, u) => u === 'inch' ? v * IN_TO_MM : v, fromBase: (v, u) => u === 'inch' ? v / IN_TO_MM : v },
-        pressure: {
-            toBase: (v, u) => { if (u === 'psi') return v * PSI_TO_MPA; if (u === 'bar') return v * BAR_TO_MPA; if (u === 'kgcm2') return v * KGCM2_TO_MPA; return v; },
-            fromBase: (v, u) => { if (u === 'psi') return v / PSI_TO_MPA; if (u === 'bar') return v / BAR_TO_MPA; if (u === 'kgcm2') return v / KGCM2_TO_MPA; return v; }
-        }
-    };
-
-    function setupDepthToggle() {
-        const d_input = document.getElementById('d');
-        const d_pct_input = document.getElementById('d_pct');
-        const t_input = document.getElementById('t');
-
-        d_input.addEventListener('input', () => {
-            const d_val = parseFloat(d_input.value); const t_val = parseFloat(t_input.value);
-            if (!isNaN(d_val) && !isNaN(t_val) && t_val > 0) { d_pct_input.value = ((d_val / t_val) * 100).toFixed(2); } else { d_pct_input.value = ''; }
-            calculate();
-        });
-
-        d_pct_input.addEventListener('input', () => {
-            const pct_val = parseFloat(d_pct_input.value); const t_val = parseFloat(t_input.value);
-            if (!isNaN(pct_val) && !isNaN(t_val) && t_val > 0) { d_input.value = ((pct_val / 100) * t_val).toFixed(3); } else { d_input.value = ''; }
-            calculate();
-        });
-
-        t_input.addEventListener('change', () => {
-            const d_val = parseFloat(d_input.value); const t_val = parseFloat(t_input.value);
-            if (!isNaN(d_val) && !isNaN(t_val) && t_val > 0) { d_pct_input.value = ((d_val / t_val) * 100).toFixed(2); }
-            calculate();
-        });
-    }
-
-    function handleUnitChange(e) {
-        const select = e.target; const type = select.dataset.type; const inputIds = select.dataset.input.split(',');
-        const newUnit = select.value; const oldUnit = lastUnits[select.id];
-        if (!oldUnit || !type || newUnit === oldUnit) return;
-
-        inputIds.forEach(id => {
-            const el = document.getElementById(id);
-            if (el && el.value !== "") {
-                const val = parseFloat(el.value);
-                if (!isNaN(val)) el.value = parseFloat(converters[type].fromBase(converters[type].toBase(val, oldUnit), newUnit).toFixed(3));
-            }
-        });
-        
-        if (select.id === 'sel-wt-unit') {
-            const d_val = parseFloat(document.getElementById('d').value); const t_val = parseFloat(document.getElementById('t').value);
-            if (!isNaN(d_val) && !isNaN(t_val) && t_val > 0) { document.getElementById('d_pct').value = ((d_val / t_val) * 100).toFixed(2); }
-        }
-
-        lastUnits[select.id] = newUnit;
-        updateUIUnitLabels();
-        if(typeof calculate === 'function') calculate();
-    }
-
-    function updateUIUnitLabels() {
-        const wtUnit = document.getElementById('sel-wt-unit').value; const prUnit = document.getElementById('sel-press-unit').value;
-        document.querySelectorAll('.unit-label-wt').forEach(el => el.innerText = wtUnit);
-        document.querySelectorAll('.unit-label-press').forEach(el => el.innerText = prUnit === 'kgcm2' ? 'kg/cm²' : prUnit);
-    }
-
-    // --- 3. MATHEMATICAL CORE ---
-    function getSFlow(grade, smys, uts, method) { if (method === 'b31g_orig') return 1.1 * smys; if (grade === "X80") return (smys + uts) / 2; return smys + 69; }
-    function calcB31G_Orig(D, t, L, d_eff, smys) { let SFlow = 1.1 * smys; let A_Ao = d_eff / t; let z = (L * L) / (D * t); let M = (z <= 20) ? Math.sqrt(1 + 0.8 * z) : (0.032 * z + 3.3); return SFlow * (2 * t / D) * ((1 - (2/3)*A_Ao) / (1 - (2/3)*(A_Ao/M))); }
-    function calcB31G_Mod(D, t, L, d_eff, SFlow) { let z = (L * L) / (D * t); let M = (z <= 50) ? Math.sqrt(1 + 0.6275 * z - 0.003375 * z * z) : (0.032 * z + 3.3); return SFlow * (2 * t / D) * ((1 - 0.85 * (d_eff / t)) / (1 - 0.85 * (d_eff / (t * M)))); }
-    function calcKastner(D, t, c_len, d_eff, smys) { let SFlow = 1.15 * smys; let R = D / 2; let c = c_len / 2; let d_t = d_eff / t; return (4 * t * SFlow / D) * (((1 - d_t) * (Math.PI - (c * d_eff) / (R * t))) / ((1 - d_t) * Math.PI + 2 * d_t * Math.sin(c / R))); }
-    function calcNG18(D, t, L, d_eff, smys, uts) { let SFlow = (smys + uts) / 2; let d_ng = Math.min(t, d_eff + 0.5); let M = Math.sqrt(1 + 0.52 * Math.pow(L / Math.sqrt(D * t), 2)); return SFlow * (2 * t / D) * ((1 - (d_ng / t)) / (1 - (d_ng / (t * M)))); }
-    
-    function calcRSTRENG(D, t, L, d_eff, SFlow, rbpString) {
-        if (!rbpString || rbpString.trim() === "") {
-            let z = (L * L) / (D * t); let M = (z <= 50) ? Math.sqrt(1 + 0.6275 * z - 0.003375 * z * z) : (0.032 * z + 3.3);
-            let A_Ao = (2/3) * (d_eff / t); return SFlow * (2 * t / D) * ((1 - A_Ao) / (1 - (A_Ao / M)));
-        }
-        let depths = rbpString.split(',').map(val => parseFloat(val.trim())).filter(val => !isNaN(val));
-        if (depths.length === 0) return 0;
-        let numPoints = depths.length; let spacing = L / (numPoints > 1 ? (numPoints - 1) : 1); let minPf = Infinity;
-
-        for (let startIndex = 0; startIndex < numPoints; startIndex++) {
-            for (let endIndex = startIndex; endIndex < numPoints; endIndex++) {
-                let subLength = (endIndex - startIndex) * spacing; if (subLength === 0) subLength = spacing;
-                let subArea = 0;
-                if (startIndex === endIndex) { subArea = depths[startIndex] * spacing; } 
-                else { for (let i = startIndex; i < endIndex; i++) subArea += ((depths[i] + depths[i+1]) / 2) * spacing; }
+            <div class="col-inputs">
                 
-                let A_Ao = Math.min(1, subArea / (subLength * t));
-                let z = (subLength * subLength) / (D * t); let M = (z <= 50) ? Math.sqrt(1 + 0.6275 * z - 0.003375 * z * z) : (0.032 * z + 3.3);
-                let Pf = SFlow * (2 * t / D) * ((1 - A_Ao) / (1 - (A_Ao / M)));
-                if (Pf < minPf) minPf = Pf;
-            }
-        }
-        return minPf;
-    }
+                <div class="card">
+                    <div class="section-header">Strategy & Methodology</div>
+                    <div class="input-group">
+                        <label>Assessment Method</label>
+                        <div class="input-wrapper">
+                            <select id="sel-method" class="select-primary calc-trigger">
+                                <option value="b31g_orig">ASME B31G (Original Level 0/1a)</option>
+                                <option value="b31g_mod" selected>Modified ASME B31G (Level 1b)</option>
+                                <option value="rstreng">RSTRENG (Level 2a Effective Area)</option>
+                                <option value="kastner">Kastner</option>
+                                <option value="ng18">NG-18 (Gouge)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Safety Factor (SF)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="SF" class="input-field calc-trigger" value="1.39" step="0.01">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Tool Tolerance</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="Tol" class="input-field calc-trigger" value="10">
+                                <div class="unit-label-static">% wt</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    function solveForDepth(calcFunc, L, targetPf, t) {
-        let low = 0; let high = t; let max_iter = 40;
-        if (calcFunc(L, 0) < targetPf) return null; 
-        for (let i = 0; i < max_iter; i++) {
-            let mid = (low + high) / 2;
-            if (calcFunc(L, mid) >= targetPf) low = mid; else high = mid; 
+                <div class="card">
+                    <div class="section-header">Pipe Properties</div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Nominal Pipe Size</label>
+                            <div class="input-wrapper">
+                                <select id="sel-nps" class="select-primary"><option value="" disabled selected>Loading...</option></select>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Std. WT (Ref)</label>
+                            <div class="input-wrapper">
+                                <select id="sel-std-wt" class="select-primary"><option value="" disabled selected>Loading...</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Diameter (D)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="D" class="input-field calc-trigger" value="36">
+                                <select id="sel-od-unit" class="modern-select unit-change-trigger" data-input="D" data-type="length">
+                                    <option value="inch">inch</option><option value="mm">mm</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Thickness (t)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="t" class="input-field calc-trigger" value="15.9">
+                                <select id="sel-wt-unit" class="modern-select unit-change-trigger" data-input="t,L,c_len" data-type="length">
+                                    <option value="mm">mm</option><option value="inch">inch</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Maximum Allowable Operating Pressure (MAOP)</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="MAOP" class="input-field calc-trigger" value="92">
+                            <select id="sel-press-unit" class="modern-select unit-change-trigger" data-input="MAOP" data-type="pressure">
+                                <option value="kgcm2" selected>kg/cm²</option><option value="bar">bar</option><option value="psi">psi</option><option value="MPa">MPa</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="section-header">Material Grades</div>
+                    <div class="input-group">
+                        <label>API 5L Grade</label>
+                        <div class="input-wrapper">
+                            <select id="sel-grade" class="select-primary"><option value="" disabled selected>Loading...</option></select>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>SMYS</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="SMYS" class="input-field calc-trigger" value="483">
+                                <div class="unit-label-static">MPa</div>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>UTS</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="UTS" class="input-field calc-trigger" value="565">
+                                <div class="unit-label-static">MPa</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="border-color: rgba(243, 112, 33, 0.4);">
+                    <div class="section-header" style="color: var(--accent-orange); border-bottom-color: rgba(243, 112, 33, 0.2);">Anomaly Dimensions</div>
+                    
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Max Depth (Absolute)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="d" class="input-field" value="5.5">
+                                <div class="unit-label-static unit-label-wt">mm</div>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Max Depth (%)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="d_pct" class="input-field" placeholder="e.g. 35">
+                                <div class="unit-label-static">%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Length (L)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="L" class="input-field calc-trigger" value="150">
+                                <div class="unit-label-static unit-label-wt">mm</div>
+                            </div>
+                        </div>
+                        <div id="grp-circ-len" class="input-group" style="display:none;">
+                            <label>Circ. Length (2c)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="c_len" class="input-field calc-trigger" value="50">
+                                <div class="unit-label-static unit-label-wt">mm</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="grp-rstreng" class="input-group" style="display:none;">
+                        <label>River Bottom Profile (CSV depths: d1, d2, d3...)</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="rbp_profile" class="input-field calc-trigger" placeholder="e.g. 1.2, 3.5, 5.5, 2.1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-results">
+                
+                <div class="dashboard-grid">
+                    <div class="dash-card state-neutral" id="card-pf">
+                        <div class="dash-label">Est. Failure Pressure (Pf)</div>
+                        <div class="dash-value" id="res-pf">0.00</div>
+                        <div class="dash-unit unit-label-press">kg/cm²</div>
+                    </div>
+                    <div class="dash-card state-neutral" id="card-psafe">
+                        <div class="dash-label" id="lbl-status">Safe Pressure (Psafe)</div>
+                        <div class="dash-value" id="res-psafe">0.00</div>
+                        <div class="dash-unit unit-label-press">kg/cm²</div>
+                    </div>
+                </div>
+
+                <div class="card" id="chart-container" style="display:none;">
+                    <div class="section-header">River Bottom Profile Visualization</div>
+                    <canvas id="rbpChart" height="150"></canvas>
+                </div>
+
+                <div class="card">
+                    <div class="section-header">Safe Length vs. Depth Acceptance Curve</div>
+                    <canvas id="acceptanceChart" height="200"></canvas>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; margin-top: 10px;">
+                        *Area below curves = "Safe" (Pf ≥ MAOP × SF). Marker indicates current anomaly.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="section-header">Method Verification Table</div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Pf</th>
+                                    <th>Psafe</th>
+                                    <th>ERF</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="result-body"></tbody>
+                        </table>
+                    </div>
+                    <button class="btn-outline" onclick="document.getElementById('modal-explanation').style.display='flex'" data-html2canvas-ignore>
+                        <i class="fas fa-info-circle" style="margin-right: 5px;"></i> View Calculation Breakdown
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" data-html2canvas-ignore>Action Successful!</div>
+
+    <div id="modal-scenarios" class="modal-overlay" data-html2canvas-ignore>
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">Scenario Manager</span>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="input-wrapper" style="margin-bottom:15px;">
+                <input type="text" id="scenario-name" class="input-field" placeholder="Scenario Name (e.g. Anomaly 1)">
+                <button class="btn-action" onclick="saveScenario()" style="border-radius:0 8px 8px 0; border:none; border-left: 1px solid var(--input-border);">Save</button>
+            </div>
+            <div id="list-scenarios" style="max-height:300px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <div id="modal-explanation" class="modal-overlay" data-html2canvas-ignore>
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title"><i class="fas fa-calculator" style="color:var(--accent-teal); margin-right:8px;"></i> Calculation Breakdown</span>
+                <button class="modal-close" onclick="document.getElementById('modal-explanation').style.display='none'">&times;</button>
+            </div>
+            <div id="dynamic-calc-content" style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.6; font-family: 'Plus Jakarta Sans', monospace;"></div>
+        </div>
+    </div>
+
+    <footer data-html2canvas-ignore>
+        <div class="scrolling-wrapper">
+            <div class="scrolling-content">
+                <span>Designed & Developed by Ramakrishna Mullapudi &copy; 2026</span>
+                <span aria-hidden="true">Designed & Developed by Ramakrishna Mullapudi &copy; 2026</span>
+            </div>
+        </div>
+    </footer>
+    <script>
+        // --- THEME INITIALIZATION & TOGGLE ---
+        const htmlElement = document.documentElement;
+        const themeToggleBtn = document.getElementById('themeToggle');
+        
+        const savedTheme = localStorage.getItem('pipelineer-theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme === 'light' || (!savedTheme && !systemPrefersDark)) {
+            htmlElement.setAttribute('data-theme', 'light');
+        } else {
+            htmlElement.setAttribute('data-theme', 'dark');
         }
-        let finalD = (low + high) / 2;
-        return finalD > (0.8 * t) ? (0.8 * t) : finalD; 
-    }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('pipelineer-theme', newTheme);
+            
+            // Re-render charts to update grid lines and text colors if needed
+            if (typeof calculate === 'function') calculate();
+        });
+
+        // --- 1. DATA & CONSTANTS ---
+        const IN_TO_MM = 25.4;
+        const PSI_TO_MPA = 0.00689476;
+        const BAR_TO_MPA = 0.1;
+        const KGCM2_TO_MPA = 0.0980665;
+
+        const NPS_DATA = { "4": 4.5, "6": 6.625, "8": 8.625, "10": 10.75, "12": 12.75, "14": 14.0, "16": 16.0, "18": 18.0, "20": 20.0, "22": 22.0, "24": 24.0, "26": 26.0, "28": 28.0, "30": 30.0, "32": 32.0, "34": 34.0, "36": 36.0, "40": 40.0, "42": 42.0, "48": 48.0 };
+        const STD_WALLS = [4.8, 5.6, 6.4, 7.1, 7.9, 8.7, 9.5, 10.3, 11.1, 12.7, 14.3, 15.9, 17.5, 19.1, 20.6, 22.2, 25.4];
+        const API_GRADES = { "A25": { smys: 172, uts: 310 }, "A": { smys: 207, uts: 331 }, "B": { smys: 241, uts: 414 }, "X42": { smys: 290, uts: 414 }, "X46": { smys: 317, uts: 434 }, "X52": { smys: 359, uts: 455 }, "X56": { smys: 386, uts: 490 }, "X60": { smys: 414, uts: 517 }, "X65": { smys: 448, uts: 531 }, "X70": { smys: 483, uts: 565 }, "X80": { smys: 552, uts: 621 } };
+
+        const lastUnits = { 'sel-od-unit': 'inch', 'sel-wt-unit': 'mm', 'sel-press-unit': 'kgcm2' };
+        let rbpChartInstance = null; 
+        let acceptanceChartInstance = null;
+
+        // --- 2. UNIT CONVERTERS & DEPTH SYNC LOGIC ---
+        const converters = {
+            length: { toBase: (v, u) => u === 'inch' ? v * IN_TO_MM : v, fromBase: (v, u) => u === 'inch' ? v / IN_TO_MM : v },
+            pressure: {
+                toBase: (v, u) => { if (u === 'psi') return v * PSI_TO_MPA; if (u === 'bar') return v * BAR_TO_MPA; if (u === 'kgcm2') return v * KGCM2_TO_MPA; return v; },
+                fromBase: (v, u) => { if (u === 'psi') return v / PSI_TO_MPA; if (u === 'bar') return v / BAR_TO_MPA; if (u === 'kgcm2') return v / KGCM2_TO_MPA; return v; }
+            }
+        };
+
+        function setupDepthToggle() {
+            const d_input = document.getElementById('d');
+            const d_pct_input = document.getElementById('d_pct');
+            const t_input = document.getElementById('t');
+
+            d_input.addEventListener('input', () => {
+                const d_val = parseFloat(d_input.value); const t_val = parseFloat(t_input.value);
+                if (!isNaN(d_val) && !isNaN(t_val) && t_val > 0) { d_pct_input.value = ((d_val / t_val) * 100).toFixed(2); } else { d_pct_input.value = ''; }
+                calculate();
+            });
+
+            d_pct_input.addEventListener('input', () => {
+                const pct_val = parseFloat(d_pct_input.value); const t_val = parseFloat(t_input.value);
+                if (!isNaN(pct_val) && !isNaN(t_val) && t_val > 0) { d_input.value = ((pct_val / 100) * t_val).toFixed(3); } else { d_input.value = ''; }
+                calculate();
+            });
+
+            t_input.addEventListener('change', () => {
+                const d_val = parseFloat(d_input.value); const t_val = parseFloat(t_input.value);
+                if (!isNaN(d_val) && !isNaN(t_val) && t_val > 0) { d_pct_input.value = ((d_val / t_val) * 100).toFixed(2); }
+                calculate();
+            });
+        }
+
+        function handleUnitChange(e) {
+            const select = e.target; const type = select.dataset.type; const inputIds = select.dataset.input.split(',');
+            const newUnit = select.value; const oldUnit = lastUnits[select.id];
+            if (!oldUnit || !type || newUnit === oldUnit) return;
+
+            inputIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value !== "") {
+                    const val = parseFloat(el.value);
+                    if (!isNaN(val)) el.value = parseFloat(converters[type].fromBase(converters[type].toBase(val, oldUnit), newUnit).toFixed(3));
+                }
+            });
+            
+            if (select.id === 'sel-wt-unit') {
+                const d_val = parseFloat(document.getElementById('d').value); const t_val = parseFloat(document.getElementById('t').value);
+                if (!isNaN(d_val) && !isNaN(t_val) && t_val > 0) { document.getElementById('d_pct').value = ((d_val / t_val) * 100).toFixed(2); }
+            }
+
+            lastUnits[select.id] = newUnit;
+            updateUIUnitLabels();
+            if(typeof calculate === 'function') calculate();
+        }
+
+        function updateUIUnitLabels() {
+            const wtUnit = document.getElementById('sel-wt-unit').value; const prUnit = document.getElementById('sel-press-unit').value;
+            document.querySelectorAll('.unit-label-wt').forEach(el => el.innerText = wtUnit);
+            document.querySelectorAll('.unit-label-press').forEach(el => el.innerText = prUnit === 'kgcm2' ? 'kg/cm²' : prUnit);
+        }
+
+        // --- 3. MATHEMATICAL CORE ---
+        function getSFlow(grade, smys, uts, method) { if (method === 'b31g_orig') return 1.1 * smys; if (grade === "X80") return (smys + uts) / 2; return smys + 69; }
+        function calcB31G_Orig(D, t, L, d_eff, smys) { let SFlow = 1.1 * smys; let A_Ao = d_eff / t; let z = (L * L) / (D * t); let M = (z <= 20) ? Math.sqrt(1 + 0.8 * z) : (0.032 * z + 3.3); return SFlow * (2 * t / D) * ((1 - (2/3)*A_Ao) / (1 - (2/3)*(A_Ao/M))); }
+        function calcB31G_Mod(D, t, L, d_eff, SFlow) { let z = (L * L) / (D * t); let M = (z <= 50) ? Math.sqrt(1 + 0.6275 * z - 0.003375 * z * z) : (0.032 * z + 3.3); return SFlow * (2 * t / D) * ((1 - 0.85 * (d_eff / t)) / (1 - 0.85 * (d_eff / (t * M)))); }
+        function calcKastner(D, t, c_len, d_eff, smys) { let SFlow = 1.15 * smys; let R = D / 2; let c = c_len / 2; let d_t = d_eff / t; return (4 * t * SFlow / D) * (((1 - d_t) * (Math.PI - (c * d_eff) / (R * t))) / ((1 - d_t) * Math.PI + 2 * d_t * Math.sin(c / R))); }
+        function calcNG18(D, t, L, d_eff, smys, uts) { let SFlow = (smys + uts) / 2; let d_ng = Math.min(t, d_eff + 0.5); let M = Math.sqrt(1 + 0.52 * Math.pow(L / Math.sqrt(D * t), 2)); return SFlow * (2 * t / D) * ((1 - (d_ng / t)) / (1 - (d_ng / (t * M)))); }
+        
+        function calcRSTRENG(D, t, L, d_eff, SFlow, rbpString) {
+            if (!rbpString || rbpString.trim() === "") {
+                let z = (L * L) / (D * t); let M = (z <= 50) ? Math.sqrt(1 + 0.6275 * z - 0.003375 * z * z) : (0.032 * z + 3.3);
+                let A_Ao = (2/3) * (d_eff / t); return SFlow * (2 * t / D) * ((1 - A_Ao) / (1 - (A_Ao / M)));
+            }
+            let depths = rbpString.split(',').map(val => parseFloat(val.trim())).filter(val => !isNaN(val));
+            if (depths.length === 0) return 0;
+            let numPoints = depths.length; let spacing = L / (numPoints > 1 ? (numPoints - 1) : 1); let minPf = Infinity;
+
+            for (let startIndex = 0; startIndex < numPoints; startIndex++) {
+                for (let endIndex = startIndex; endIndex < numPoints; endIndex++) {
+                    let subLength = (endIndex - startIndex) * spacing; if (subLength === 0) subLength = spacing;
+                    let subArea = 0;
+                    if (startIndex === endIndex) { subArea = depths[startIndex] * spacing; } 
+                    else { for (let i = startIndex; i < endIndex; i++) subArea += ((depths[i] + depths[i+1]) / 2) * spacing; }
+                    
+                    let A_Ao = Math.min(1, subArea / (subLength * t));
+                    let z = (subLength * subLength) / (D * t); let M = (z <= 50) ? Math.sqrt(1 + 0.6275 * z - 0.003375 * z * z) : (0.032 * z + 3.3);
+                    let Pf = SFlow * (2 * t / D) * ((1 - A_Ao) / (1 - (A_Ao / M)));
+                    if (Pf < minPf) minPf = Pf;
+                }
+            }
+            return minPf;
+        }
+
+        function solveForDepth(calcFunc, L, targetPf, t) {
+            let low = 0; let high = t; let max_iter = 40;
+            if (calcFunc(L, 0) < targetPf) return null; 
+            for (let i = 0; i < max_iter; i++) {
+                let mid = (low + high) / 2;
+                if (calcFunc(L, mid) >= targetPf) low = mid; else high = mid; 
+            }
+            let finalD = (low + high) / 2;
+            return finalD > (0.8 * t) ? (0.8 * t) : finalD; 
+        }
 
         // --- 4. CALCULATION HANDLER ---
-    function calculate() {
-        const u_L = document.getElementById('sel-od-unit').value; const u_wt = document.getElementById('sel-wt-unit').value;
-        const u_P = document.getElementById('sel-press-unit').value; const method = document.getElementById('sel-method').value;
+        function calculate() {
+            const u_L = document.getElementById('sel-od-unit').value; const u_wt = document.getElementById('sel-wt-unit').value;
+            const u_P = document.getElementById('sel-press-unit').value; const method = document.getElementById('sel-method').value;
 
-        document.getElementById('grp-circ-len').style.display = (method === 'kastner') ? 'block' : 'none';
-        document.getElementById('grp-rstreng').style.display = (method === 'rstreng') ? 'block' : 'none';
+            document.getElementById('grp-circ-len').style.display = (method === 'kastner') ? 'block' : 'none';
+            document.getElementById('grp-rstreng').style.display = (method === 'rstreng') ? 'block' : 'none';
 
-        const D = converters.length.toBase(parseFloat(document.getElementById('D').value), u_L);
-        const t = converters.length.toBase(parseFloat(document.getElementById('t').value), u_wt);
-        const L = converters.length.toBase(parseFloat(document.getElementById('L').value), u_wt);
-        const c_len = converters.length.toBase(parseFloat(document.getElementById('c_len').value), u_wt);
-        const maop_base = converters.pressure.toBase(parseFloat(document.getElementById('MAOP').value), u_P);
-        
-        let d_val_ui = parseFloat(document.getElementById('d').value);
-        let d_raw = converters.length.toBase(d_val_ui, u_wt);
-        if (isNaN(d_raw)) return;
+            const D = converters.length.toBase(parseFloat(document.getElementById('D').value), u_L);
+            const t = converters.length.toBase(parseFloat(document.getElementById('t').value), u_wt);
+            const L = converters.length.toBase(parseFloat(document.getElementById('L').value), u_wt);
+            const c_len = converters.length.toBase(parseFloat(document.getElementById('c_len').value), u_wt);
+            const maop_base = converters.pressure.toBase(parseFloat(document.getElementById('MAOP').value), u_P);
+            
+            let d_val_ui = parseFloat(document.getElementById('d').value);
+            let d_raw = converters.length.toBase(d_val_ui, u_wt);
+            if (isNaN(d_raw)) return;
 
-        const rbp_str = document.getElementById('rbp_profile').value;
-        const smys = parseFloat(document.getElementById('SMYS').value); const uts = parseFloat(document.getElementById('UTS').value);
-        const grade = document.getElementById('sel-grade').value; const sf = parseFloat(document.getElementById('SF').value) || 1.39;
-        const tol_pct = parseFloat(document.getElementById('Tol').value) || 0;
+            const rbp_str = document.getElementById('rbp_profile').value;
+            const smys = parseFloat(document.getElementById('SMYS').value); const uts = parseFloat(document.getElementById('UTS').value);
+            const grade = document.getElementById('sel-grade').value; const sf = parseFloat(document.getElementById('SF').value) || 1.39;
+            const tol_pct = parseFloat(document.getElementById('Tol').value) || 0;
 
-        // --- NEW: RBP MAX DEPTH VALIDATION ---
-        const grp_rstreng = document.getElementById('grp-rstreng');
-        let rbpWarning = document.getElementById('rbp-warning');
-        if (!rbpWarning) {
-            rbpWarning = document.createElement('div');
-            rbpWarning.id = 'rbp-warning';
-            rbpWarning.style.color = 'var(--danger-text)';
-            rbpWarning.style.fontSize = '0.75rem';
-            rbpWarning.style.marginTop = '4px';
-            rbpWarning.style.fontWeight = '600';
-            grp_rstreng.appendChild(rbpWarning);
-        }
-        
-        const rbpWrapper = document.getElementById('rbp_profile').parentElement;
-        if (method === 'rstreng' && rbp_str.trim() !== '') {
-            let depths = rbp_str.split(',').map(val => parseFloat(val.trim())).filter(val => !isNaN(val));
-            if (depths.length > 0) {
-                let maxRBP = Math.max(...depths);
-                // Checks if max profile depth matches entered max depth (with 0.01mm tolerance for rounding)
-                if (Math.abs(maxRBP - d_val_ui) > 0.01) {
-                    rbpWrapper.style.borderColor = 'var(--danger-border)';
-                    rbpWarning.innerText = "Warning: Profile max depth does not match Max Depth (d).";
+            // --- RBP MAX DEPTH VALIDATION ---
+            const grp_rstreng = document.getElementById('grp-rstreng');
+            let rbpWarning = document.getElementById('rbp-warning');
+            if (!rbpWarning) {
+                rbpWarning = document.createElement('div');
+                rbpWarning.id = 'rbp-warning';
+                rbpWarning.style.color = 'var(--danger-text)';
+                rbpWarning.style.fontSize = '0.75rem';
+                rbpWarning.style.marginTop = '4px';
+                rbpWarning.style.fontWeight = '600';
+                grp_rstreng.appendChild(rbpWarning);
+            }
+            
+            const rbpWrapper = document.getElementById('rbp_profile').parentElement;
+            if (method === 'rstreng' && rbp_str.trim() !== '') {
+                let depths = rbp_str.split(',').map(val => parseFloat(val.trim())).filter(val => !isNaN(val));
+                if (depths.length > 0) {
+                    let maxRBP = Math.max(...depths);
+                    if (Math.abs(maxRBP - d_val_ui) > 0.01) {
+                        rbpWrapper.style.borderColor = 'var(--danger-border)';
+                        rbpWarning.innerText = "Warning: Profile max depth does not match Max Depth (d).";
+                    } else {
+                        rbpWrapper.style.borderColor = '';
+                        rbpWarning.innerText = "";
+                    }
                 } else {
                     rbpWrapper.style.borderColor = '';
                     rbpWarning.innerText = "";
@@ -546,447 +815,457 @@
                 rbpWrapper.style.borderColor = '';
                 rbpWarning.innerText = "";
             }
-        } else {
-            rbpWrapper.style.borderColor = '';
-            rbpWarning.innerText = "";
+
+            if (!D || !t || isNaN(smys)) return;
+
+            let d_eff = d_raw + (Math.max(0, tol_pct - 10) / 100) * t; if (d_eff > t) d_eff = t;
+            const sFlowMod = getSFlow(grade, smys, uts, 'b31g_mod');
+
+            const results = [
+                { id: 'b31g_orig', name: 'B31G Original', val: calcB31G_Orig(D, t, L, d_eff, smys) },
+                { id: 'b31g_mod', name: 'B31G Modified', val: calcB31G_Mod(D, t, L, d_eff, sFlowMod) },
+                { id: 'rstreng', name: 'RSTRENG (Eff. Area)', val: calcRSTRENG(D, t, L, d_eff, sFlowMod, rbp_str) },
+                { id: 'kastner', name: 'Kastner', val: calcKastner(D, t, c_len, d_eff, smys) },
+                { id: 'ng18', name: 'NG-18 (Gouge)', val: calcNG18(D, t, L, d_eff, smys, uts) }
+            ];
+
+            const selectedRes = results.find(r => r.id === method).val;
+            const pf_disp = converters.pressure.fromBase(selectedRes, u_P);
+            const psafe_disp = pf_disp / sf; const maop_disp = converters.pressure.fromBase(maop_base, u_P);
+
+            document.getElementById('res-pf').innerText = pf_disp.toFixed(2);
+            document.getElementById('res-psafe').innerText = psafe_disp.toFixed(2);
+
+            // --- Glassmorphism Dynamic Dashboard Status ---
+            const psafeCard = document.getElementById('card-psafe'); 
+            const pfCard = document.getElementById('card-pf');
+            const lblStatus = document.getElementById('lbl-status');
+
+            // Reset classes
+            psafeCard.classList.remove('state-safe', 'state-danger', 'state-neutral');
+            pfCard.classList.remove('state-safe', 'state-danger', 'state-neutral');
+
+            if ((d_eff / t) > 0.8) { 
+                psafeCard.classList.add('state-danger');
+                pfCard.classList.add('state-danger');
+                lblStatus.innerText = "EXCEEDS 80% WT LIMIT"; 
+                lblStatus.style.color = 'var(--danger-text)';
+            } else if (psafe_disp < maop_disp) {
+                psafeCard.classList.add('state-danger');
+                pfCard.classList.add('state-danger');
+                lblStatus.innerText = "UNSAFE (ERF > 1.0)"; 
+                lblStatus.style.color = 'var(--danger-text)';
+            } else {
+                psafeCard.classList.add('state-safe');
+                pfCard.classList.add('state-safe');
+                lblStatus.innerText = "SAFE PRESSURE (Psafe)"; 
+                lblStatus.style.color = 'var(--success-text)';
+            }
+
+            const tbody = document.getElementById('result-body'); tbody.innerHTML = '';
+            results.forEach(r => {
+                const pf = converters.pressure.fromBase(r.val, u_P); const ps = pf / sf;
+                const erf = ps > 0 ? (maop_disp / ps) : Infinity;
+                let status = "OK"; let color = "var(--success-text)";
+                
+                if ((d_eff/t) > 0.8) { status = "Repair (>80%)"; color = "var(--danger-text)"; } 
+                else if (erf > 1.0) { status = "Repair (ERF > 1)"; color = "var(--danger-text)"; }
+                
+                const isSel = r.id === method ? "background:var(--metric-bg); border-left: 3px solid var(--accent-teal);" : "";
+                tbody.innerHTML += `<tr style="${isSel}" data-method="${r.id}"><td><strong>${r.name}</strong></td><td class="mono">${pf.toFixed(2)}</td><td class="mono">${ps.toFixed(2)}</td><td class="mono"><strong>${erf === Infinity ? '∞' : erf.toFixed(3)}</strong></td><td style="color:${color}; font-weight:600;">${status}</td></tr>`;
+            });
+
+            updateChart(L, t, rbp_str, method);
+            updateAcceptanceChart(D, t, smys, uts, grade, sf, maop_base, c_len, L, d_eff);
+            generateCalculationBreakdown(D, t, L, d_eff, c_len, smys, uts, grade, sf, u_P, rbp_str);
         }
-        // -------------------------------------
 
-        if (!D || !t || isNaN(smys)) return;
+        // --- 4.5. DYNAMIC MATH GENERATOR ---
+        function generateCalculationBreakdown(D, t, L, d, c_len, smys, uts, grade, sf, u_P, rbp_str) {
+            const d_t = d/t; const z = (L * L) / (D * t); const z_str = `${L.toFixed(2)}² / (${D.toFixed(2)} × ${t.toFixed(2)})`;
+            const sFlowOrig = 1.1 * smys; const M_orig = (z <= 20) ? Math.sqrt(1 + 0.8 * z) : (0.032 * z + 3.3); const term_orig = (1 - (2/3)*(d/t)) / (1 - (2/3)*(d/t)/M_orig); const pfOrig = sFlowOrig * (2 * t / D) * term_orig;
+            const sFlowMod = (grade === "X80") ? (smys + uts) / 2 : smys + 69; const M_mod = (z <= 50) ? Math.sqrt(1 + 0.6275 * z - 0.003375 * z * z) : (0.032 * z + 3.3); const term_mod = (1 - 0.85*(d/t)) / (1 - 0.85*(d/t)/M_mod); const pfMod = sFlowMod * (2 * t / D) * term_mod;
+            const sFlowKastner = 1.15 * smys; const R = D / 2; const c_half = c_len / 2; const kastner_num = (1 - d_t) * (Math.PI - (c_half * d) / (R * t)); const kastner_den = (1 - d_t) * Math.PI + 2 * d_t * Math.sin(c_half / R); const pfKastner = (4 * t * sFlowKastner / D) * (kastner_num / kastner_den);
+            const sFlowNG = (smys + uts) / 2; const d_ng = Math.min(t, d + 0.5); const M_ng = Math.sqrt(1 + 0.52 * Math.pow(L / Math.sqrt(D * t), 2)); const term_ng = (1 - (d_ng/t)) / (1 - (d_ng/t)/M_ng); const pfNG = sFlowNG * (2 * t / D) * term_ng;
 
-        let d_eff = d_raw + (Math.max(0, tol_pct - 10) / 100) * t; if (d_eff > t) d_eff = t;
-        const sFlowMod = getSFlow(grade, smys, uts, 'b31g_mod');
+            const c = (val) => converters.pressure.fromBase(val, u_P).toFixed(2); const u_P_disp = (u_P === 'kgcm2') ? 'kg/cm²' : u_P;
 
-        const results = [
-            { id: 'b31g_orig', name: 'B31G Original', val: calcB31G_Orig(D, t, L, d_eff, smys) },
-            { id: 'b31g_mod', name: 'B31G Modified', val: calcB31G_Mod(D, t, L, d_eff, sFlowMod) },
-            { id: 'rstreng', name: 'RSTRENG (Eff. Area)', val: calcRSTRENG(D, t, L, d_eff, sFlowMod, rbp_str) },
-            { id: 'kastner', name: 'Kastner', val: calcKastner(D, t, c_len, d_eff, smys) },
-            { id: 'ng18', name: 'NG-18 (Gouge)', val: calcNG18(D, t, L, d_eff, smys, uts) }
-        ];
+            let html = `
+                <div style="background:var(--metric-bg); padding:10px; border-radius:8px; margin-bottom:12px; border-left:3px solid var(--accent-orange);">
+                    <strong>Input Summary:</strong> D = ${D.toFixed(2)} mm | t = ${t.toFixed(2)} mm | d_eff = ${d.toFixed(2)} mm | L = ${L.toFixed(2)} mm | 2c = ${c_len.toFixed(2)} mm | SMYS = ${smys} | UTS = ${uts} | d/t = ${(d_t).toFixed(4)}
+                </div>
 
-        const selectedRes = results.find(r => r.id === method).val;
-        const pf_disp = converters.pressure.fromBase(selectedRes, u_P);
-        const psafe_disp = pf_disp / sf; const maop_disp = converters.pressure.fromBase(maop_base, u_P);
+                <table style="width: 100%; margin-bottom: 8px; border-bottom: 1px solid var(--card-border); border-collapse: collapse;">
+                    <tr><td colspan="2" style="padding:0;"><h4 style="color:var(--accent-teal); margin:0 0 4px 0;">4.1 ASME B31G (Original)</h4></td></tr>
+                    <tr><td style="width: 22%; padding:2px 0;">S_flow</td><td style="padding:2px 0;">= 1.1 × SMYS = 1.1 × ${smys} = <strong>${sFlowOrig.toFixed(2)} MPa</strong></td></tr>
+                    <tr><td style="padding:2px 0;">z</td><td style="padding:2px 0;">= L² / (D × t) = ${z_str} = <strong>${z.toFixed(4)}</strong></td></tr>
+                    <tr><td style="padding:2px 0;">M</td><td style="padding:2px 0;">= √(1 + 0.8z) = <strong>${M_orig.toFixed(4)}</strong></td></tr>
+                    <tr><td style="padding:2px 0;">Area_Ratio</td><td style="padding:2px 0;">= 2/3 × (d/t) = <strong>${((2/3)*d_t).toFixed(4)}</strong></td></tr>
+                    <tr><td style="padding:2px 0;">Pf Formula</td><td style="padding:2px 0;">= S_flow × (2t / D) × [ (1 - Area) / (1 - Area/M) ]</td></tr>
+                    <tr><td style="padding:2px 0;">Pf Calculation</td><td style="padding:2px 0;">= ${sFlowOrig.toFixed(2)} × ${(2*t/D).toFixed(4)} × [ ${(1 - (2/3)*d_t).toFixed(4)} / ${(1 - ((2/3)*d_t)/M_orig).toFixed(4)} ] = <strong>${pfOrig.toFixed(2)} MPa</strong></td></tr>
+                    <tr><td colspan="2" style="color:var(--success-text); font-weight:bold; padding:4px 0 8px 0;">Final: ${c(pfOrig)} ${u_P_disp}</td></tr>
+                </table>
 
-        document.getElementById('res-pf').innerText = pf_disp.toFixed(2);
-        document.getElementById('res-psafe').innerText = psafe_disp.toFixed(2);
+                <table style="width: 100%; margin-bottom: 8px; border-bottom: 1px solid var(--card-border); border-collapse: collapse;">
+                    <tr><td colspan="2" style="padding:0;"><h4 style="color:var(--accent-teal); margin:0 0 4px 0;">4.2 ASME B31G (Modified)</h4></td></tr>
+                    <tr><td style="width: 22%; padding:2px 0;">S_flow</td><td style="padding:2px 0;">= SMYS + 69 = ${smys} + 69 = <strong>${sFlowMod.toFixed(2)} MPa</strong></td></tr>
+                    <tr><td style="padding:2px 0;">z</td><td style="padding:2px 0;">= <strong>${z.toFixed(4)}</strong></td></tr>
+                    <tr><td style="padding:2px 0;">M</td><td style="padding:2px 0;">= √(1 + 0.6275z - 0.003375z²) = <strong>${M_mod.toFixed(4)}</strong></td></tr>
+                    <tr><td style="padding:2px 0;">Area_Ratio</td><td style="padding:2px 0;">= 0.85 × (d/t) = <strong>${(0.85*d_t).toFixed(4)}</strong></td></tr>
+                    <tr><td style="padding:2px 0;">Pf Formula</td><td style="padding:2px 0;">= S_flow × (2t / D) × [ (1 - Area) / (1 - Area/M) ]</td></tr>
+                    <tr><td style="padding:2px 0;">Pf Calculation</td><td style="padding:2px 0;">= ${sFlowMod.toFixed(2)} × ${(2*t/D).toFixed(4)} × [ ${(1 - 0.85*d_t).toFixed(4)} / ${(1 - (0.85*d_t)/M_mod).toFixed(4)} ] = <strong>${pfMod.toFixed(2)} MPa</strong></td></tr>
+                    <tr><td colspan="2" style="color:var(--success-text); font-weight:bold; padding:4px 0 8px 0;">Final: ${c(pfMod)} ${u_P_disp}</td></tr>
+                </table>
 
-        const psafeCard = document.getElementById('card-psafe'); const lblStatus = document.getElementById('lbl-status');
-        if ((d_eff / t) > 0.8) { 
-            psafeCard.style.backgroundColor = 'var(--danger-bg)'; psafeCard.style.borderColor = 'var(--danger-border)';
-            lblStatus.innerText = "EXCEEDS 80% WT LIMIT"; lblStatus.style.color = 'var(--danger-text)';
-        } else if (psafe_disp < maop_disp) {
-            psafeCard.style.backgroundColor = 'var(--danger-bg)'; psafeCard.style.borderColor = 'var(--danger-border)';
-            lblStatus.innerText = "UNSAFE (ERF > 1.0)"; lblStatus.style.color = 'var(--danger-text)';
-        } else {
-            psafeCard.style.backgroundColor = 'var(--success-bg)'; psafeCard.style.borderColor = 'var(--success-border)';
-            lblStatus.innerText = "SAFE PRESSURE (Psafe)"; lblStatus.style.color = 'var(--success-text)';
+                <table style="width: 100%; margin-bottom: 8px; border-bottom: 1px solid var(--card-border); border-collapse: collapse;">
+                    <tr><td style="padding:0;"><h4 style="color:var(--accent-teal); margin:0 0 4px 0;">4.3 RSTRENG (Effective Area)</h4></td></tr>
+                    <tr><td style="padding:2px 0;"><i>Iterates through River Bottom Profile (if provided) using B31G Mod equations to find the lowest failure pressure.</i></td></tr>
+                    <tr><td style="padding:2px 0;">Profile Entered: ${rbp_str ? rbp_str : "None (Using Parabolic Area Assumption)"}</td></tr>
+                    <tr><td style="color:var(--success-text); font-weight:bold; padding:4px 0 8px 0;">Lowest Pf Found: ${c(calcRSTRENG(D, t, L, d, sFlowMod, rbp_str))} ${u_P_disp}</td></tr>
+                </table>
+
+                <table style="width: 100%; margin-bottom: 8px; border-bottom: 1px solid var(--card-border); border-collapse: collapse;">
+                    <tr><td colspan="2" style="padding:0;"><h4 style="color:var(--accent-teal); margin:0 0 4px 0;">4.4 Kastner</h4></td></tr>
+                    <tr><td style="width: 22%; padding:2px 0;">S_flow</td><td style="padding:2px 0;">= 1.15 × SMYS = 1.15 × ${smys} = <strong>${sFlowKastner.toFixed(2)} MPa</strong></td></tr>
+                    <tr><td style="padding:2px 0;">R</td><td style="padding:2px 0;">= D / 2 = ${D.toFixed(2)} / 2 = <strong>${R.toFixed(2)} mm</strong></td></tr>
+                    <tr><td style="padding:2px 0;">c</td><td style="padding:2px 0;">= c_len / 2 = ${c_len.toFixed(2)} / 2 = <strong>${c_half.toFixed(2)} mm</strong></td></tr>
+                    <tr><td style="padding:2px 0;">Numerator</td><td style="padding:2px 0;">= (1 - d/t) × (π - c×d / R×t) = <strong>${kastner_num.toFixed(4)}</strong></td></tr>
+                    <tr><td style="padding:2px 0;">Denominator</td><td style="padding:2px 0;">= (1 - d/t)π + 2(d/t)sin(c/R) = <strong>${kastner_den.toFixed(4)}</strong></td></tr>
+                    <tr><td style="padding:2px 0;">Pf Formula</td><td style="padding:2px 0;">= (4t × S_flow / D) × (Numerator / Denominator)</td></tr>
+                    <tr><td style="padding:2px 0;">Pf Calculation</td><td style="padding:2px 0;">= (4 × ${t.toFixed(2)} × ${sFlowKastner.toFixed(2)} / ${D.toFixed(2)}) × (${kastner_num.toFixed(4)} / ${kastner_den.toFixed(4)}) = <strong>${pfKastner.toFixed(2)} MPa</strong></td></tr>
+                    <tr><td colspan="2" style="color:var(--success-text); font-weight:bold; padding:4px 0 8px 0;">Final: ${c(pfKastner)} ${u_P_disp}</td></tr>
+                </table>
+
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr><td colspan="2" style="padding:0;"><h4 style="color:var(--accent-teal); margin:0 0 4px 0;">4.5 NG-18 (Gouge)</h4></td></tr>
+                    <tr><td style="width: 22%; padding:2px 0;">S_flow</td><td style="padding:2px 0;">= (SMYS + UTS) / 2 = (${smys} + ${uts}) / 2 = <strong>${sFlowNG.toFixed(2)} MPa</strong></td></tr>
+                    <tr><td style="padding:2px 0;">d_eff</td><td style="padding:2px 0;">= depth + 0.5mm crack penalty = ${d.toFixed(2)} + 0.5 = <strong>${d_ng.toFixed(2)} mm</strong></td></tr>
+                    <tr><td style="padding:2px 0;">M</td><td style="padding:2px 0;">= √(1 + 0.52 × (L / √(D×t))²) = <strong>${M_ng.toFixed(4)}</strong></td></tr>
+                    <tr><td style="padding:2px 0;">Pf Formula</td><td style="padding:2px 0;">= S_flow × (2t / D) × [ (1 - (d_ng/t)) / (1 - (d_ng/t)/M) ]</td></tr>
+                    <tr><td style="padding:2px 0;">Pf Calculation</td><td style="padding:2px 0;">= ${sFlowNG.toFixed(2)} × ${(2*t/D).toFixed(4)} × [ ${(1 - (d_ng/t)).toFixed(4)} / ${(1 - (d_ng/t)/M_ng).toFixed(4)} ] = <strong>${pfNG.toFixed(2)} MPa</strong></td></tr>
+                    <tr><td colspan="2" style="color:var(--success-text); font-weight:bold; padding:4px 0 0 0;">Final: ${c(pfNG)} ${u_P_disp}</td></tr>
+                </table>
+            `;
+
+            document.getElementById('dynamic-calc-content').innerHTML = html;
         }
 
-        const tbody = document.getElementById('result-body'); tbody.innerHTML = '';
-        results.forEach(r => {
-            const pf = converters.pressure.fromBase(r.val, u_P); const ps = pf / sf;
-            const erf = ps > 0 ? (maop_disp / ps) : Infinity;
-            let status = "OK"; let color = "var(--success-text)";
+        // --- CHART GENERATORS ---
+        function updateChart(L, t, rbpString, method) {
+            const container = document.getElementById('chart-container');
+            if (method !== 'rstreng' || !rbpString || rbpString.trim() === "") {
+                container.style.display = 'none'; return;
+            }
+            container.style.display = 'block';
             
-            if ((d_eff/t) > 0.8) { status = "Repair (>80%)"; color = "var(--danger-text)"; } 
-            else if (erf > 1.0) { status = "Repair (ERF > 1)"; color = "var(--danger-text)"; }
+            let depths = rbpString.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+            if (depths.length === 0) return;
             
-            const isSel = r.id === method ? "background:var(--bg-card); border-left: 3px solid var(--accent-color);" : "";
-            tbody.innerHTML += `<tr style="${isSel}" data-method="${r.id}"><td><strong>${r.name}</strong></td><td>${pf.toFixed(2)}</td><td>${ps.toFixed(2)}</td><td><strong>${erf === Infinity ? '∞' : erf.toFixed(3)}</strong></td><td style="color:${color}; font-weight:600;">${status}</td></tr>`;
-        });
+            let labels = []; let dataPoints = []; let spacing = L / (depths.length > 1 ? depths.length - 1 : 1);
+            for(let i=0; i<depths.length; i++) { labels.push((i*spacing).toFixed(1) + 'mm'); dataPoints.push(-depths[i]); }
+            
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#94a3b8';
+            const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--card-border').trim() || '#334155';
 
-        updateChart(L, t, rbp_str, method);
-        updateAcceptanceChart(D, t, smys, uts, grade, sf, maop_base, c_len, L, d_eff);
-        generateCalculationBreakdown(D, t, L, d_eff, c_len, smys, uts, grade, sf, u_P, rbp_str);
-    }
-
-            // --- 4.5. DYNAMIC MATH GENERATOR (ULTRA-COMPACT GRID FORMAT) ---
-    function generateCalculationBreakdown(D, t, L, d, c_len, smys, uts, grade, sf, u_P, rbp_str) {
-        const d_t = d/t; const z = (L * L) / (D * t); const z_str = `${L.toFixed(2)}² / (${D.toFixed(2)} × ${t.toFixed(2)})`;
-        const sFlowOrig = 1.1 * smys; const M_orig = (z <= 20) ? Math.sqrt(1 + 0.8 * z) : (0.032 * z + 3.3); const term_orig = (1 - (2/3)*(d/t)) / (1 - (2/3)*(d/t)/M_orig); const pfOrig = sFlowOrig * (2 * t / D) * term_orig;
-        const sFlowMod = (grade === "X80") ? (smys + uts) / 2 : smys + 69; const M_mod = (z <= 50) ? Math.sqrt(1 + 0.6275 * z - 0.003375 * z * z) : (0.032 * z + 3.3); const term_mod = (1 - 0.85*(d/t)) / (1 - 0.85*(d/t)/M_mod); const pfMod = sFlowMod * (2 * t / D) * term_mod;
-        const sFlowKastner = 1.15 * smys; const R = D / 2; const c_half = c_len / 2; const kastner_num = (1 - d_t) * (Math.PI - (c_half * d) / (R * t)); const kastner_den = (1 - d_t) * Math.PI + 2 * d_t * Math.sin(c_half / R); const pfKastner = (4 * t * sFlowKastner / D) * (kastner_num / kastner_den);
-        const sFlowNG = (smys + uts) / 2; const d_ng = Math.min(t, d + 0.5); const M_ng = Math.sqrt(1 + 0.52 * Math.pow(L / Math.sqrt(D * t), 2)); const term_ng = (1 - (d_ng/t)) / (1 - (d_ng/t)/M_ng); const pfNG = sFlowNG * (2 * t / D) * term_ng;
-
-        const c = (val) => converters.pressure.fromBase(val, u_P).toFixed(2); const u_P_disp = (u_P === 'kgcm2') ? 'kg/cm²' : u_P;
-
-        // Structured into seamless borderless tables with a single bottom border per section. Padding is minimized.
-        let html = `
-            <div style="background:var(--bg-input); padding:6px; border-radius:4px; margin-bottom:8px; border-left:3px solid var(--highlight);">
-                <strong>Input Summary:</strong> D = ${D.toFixed(2)} mm | t = ${t.toFixed(2)} mm | d_eff = ${d.toFixed(2)} mm | L = ${L.toFixed(2)} mm | 2c = ${c_len.toFixed(2)} mm | SMYS = ${smys} | UTS = ${uts} | d/t = ${(d_t).toFixed(4)}
-            </div>
-
-            <table style="width: 100%; margin-bottom: 4px; border-bottom: 1px solid var(--border-color); border-collapse: collapse;">
-                <tr><td colspan="2" style="padding:0;"><h4 style="color:var(--highlight); margin:0 0 2px 0;">4.1 ASME B31G (Original)</h4></td></tr>
-                <tr><td style="width: 22%; padding:1px 0;">S_flow</td><td style="padding:1px 0;">= 1.1 × SMYS = 1.1 × ${smys} = <strong>${sFlowOrig.toFixed(2)} MPa</strong></td></tr>
-                <tr><td style="padding:1px 0;">z</td><td style="padding:1px 0;">= L² / (D × t) = ${z_str} = <strong>${z.toFixed(4)}</strong></td></tr>
-                <tr><td style="padding:1px 0;">M</td><td style="padding:1px 0;">= √(1 + 0.8z) = <strong>${M_orig.toFixed(4)}</strong></td></tr>
-                <tr><td style="padding:1px 0;">Area_Ratio</td><td style="padding:1px 0;">= 2/3 × (d/t) = <strong>${((2/3)*d_t).toFixed(4)}</strong></td></tr>
-                <tr><td style="padding:1px 0;">Pf Formula</td><td style="padding:1px 0;">= S_flow × (2t / D) × [ (1 - Area) / (1 - Area/M) ]</td></tr>
-                <tr><td style="padding:1px 0;">Pf Calculation</td><td style="padding:1px 0;">= ${sFlowOrig.toFixed(2)} × ${(2*t/D).toFixed(4)} × [ ${(1 - (2/3)*d_t).toFixed(4)} / ${(1 - ((2/3)*d_t)/M_orig).toFixed(4)} ] = <strong>${pfOrig.toFixed(2)} MPa</strong></td></tr>
-                <tr><td colspan="2" style="color:var(--success-text); font-weight:bold; padding:2px 0 4px 0;">Final: ${c(pfOrig)} ${u_P_disp}</td></tr>
-            </table>
-
-            <table style="width: 100%; margin-bottom: 4px; border-bottom: 1px solid var(--border-color); border-collapse: collapse;">
-                <tr><td colspan="2" style="padding:0;"><h4 style="color:var(--highlight); margin:0 0 2px 0;">4.2 ASME B31G (Modified)</h4></td></tr>
-                <tr><td style="width: 22%; padding:1px 0;">S_flow</td><td style="padding:1px 0;">= SMYS + 69 = ${smys} + 69 = <strong>${sFlowMod.toFixed(2)} MPa</strong></td></tr>
-                <tr><td style="padding:1px 0;">z</td><td style="padding:1px 0;">= <strong>${z.toFixed(4)}</strong></td></tr>
-                <tr><td style="padding:1px 0;">M</td><td style="padding:1px 0;">= √(1 + 0.6275z - 0.003375z²) = <strong>${M_mod.toFixed(4)}</strong></td></tr>
-                <tr><td style="padding:1px 0;">Area_Ratio</td><td style="padding:1px 0;">= 0.85 × (d/t) = <strong>${(0.85*d_t).toFixed(4)}</strong></td></tr>
-                <tr><td style="padding:1px 0;">Pf Formula</td><td style="padding:1px 0;">= S_flow × (2t / D) × [ (1 - Area) / (1 - Area/M) ]</td></tr>
-                <tr><td style="padding:1px 0;">Pf Calculation</td><td style="padding:1px 0;">= ${sFlowMod.toFixed(2)} × ${(2*t/D).toFixed(4)} × [ ${(1 - 0.85*d_t).toFixed(4)} / ${(1 - (0.85*d_t)/M_mod).toFixed(4)} ] = <strong>${pfMod.toFixed(2)} MPa</strong></td></tr>
-                <tr><td colspan="2" style="color:var(--success-text); font-weight:bold; padding:2px 0 4px 0;">Final: ${c(pfMod)} ${u_P_disp}</td></tr>
-            </table>
-
-            <table style="width: 100%; margin-bottom: 4px; border-bottom: 1px solid var(--border-color); border-collapse: collapse;">
-                <tr><td style="padding:0;"><h4 style="color:var(--highlight); margin:0 0 2px 0;">4.3 RSTRENG (Effective Area)</h4></td></tr>
-                <tr><td style="padding:1px 0;"><i>Iterates through River Bottom Profile (if provided) using B31G Mod equations to find the lowest failure pressure.</i></td></tr>
-                <tr><td style="padding:1px 0;">Profile Entered: ${rbp_str ? rbp_str : "None (Using Parabolic Area Assumption)"}</td></tr>
-                <tr><td style="color:var(--success-text); font-weight:bold; padding:2px 0 4px 0;">Lowest Pf Found: ${c(calcRSTRENG(D, t, L, d, sFlowMod, rbp_str))} ${u_P_disp}</td></tr>
-            </table>
-
-            <table style="width: 100%; margin-bottom: 4px; border-bottom: 1px solid var(--border-color); border-collapse: collapse;">
-                <tr><td colspan="2" style="padding:0;"><h4 style="color:var(--highlight); margin:0 0 2px 0;">4.4 Kastner</h4></td></tr>
-                <tr><td style="width: 22%; padding:1px 0;">S_flow</td><td style="padding:1px 0;">= 1.15 × SMYS = 1.15 × ${smys} = <strong>${sFlowKastner.toFixed(2)} MPa</strong></td></tr>
-                <tr><td style="padding:1px 0;">R</td><td style="padding:1px 0;">= D / 2 = ${D.toFixed(2)} / 2 = <strong>${R.toFixed(2)} mm</strong></td></tr>
-                <tr><td style="padding:1px 0;">c</td><td style="padding:1px 0;">= c_len / 2 = ${c_len.toFixed(2)} / 2 = <strong>${c_half.toFixed(2)} mm</strong></td></tr>
-                <tr><td style="padding:1px 0;">Numerator</td><td style="padding:1px 0;">= (1 - d/t) × (π - c×d / R×t) = <strong>${kastner_num.toFixed(4)}</strong></td></tr>
-                <tr><td style="padding:1px 0;">Denominator</td><td style="padding:1px 0;">= (1 - d/t)π + 2(d/t)sin(c/R) = <strong>${kastner_den.toFixed(4)}</strong></td></tr>
-                <tr><td style="padding:1px 0;">Pf Formula</td><td style="padding:1px 0;">= (4t × S_flow / D) × (Numerator / Denominator)</td></tr>
-                <tr><td style="padding:1px 0;">Pf Calculation</td><td style="padding:1px 0;">= (4 × ${t.toFixed(2)} × ${sFlowKastner.toFixed(2)} / ${D.toFixed(2)}) × (${kastner_num.toFixed(4)} / ${kastner_den.toFixed(4)}) = <strong>${pfKastner.toFixed(2)} MPa</strong></td></tr>
-                <tr><td colspan="2" style="color:var(--success-text); font-weight:bold; padding:2px 0 4px 0;">Final: ${c(pfKastner)} ${u_P_disp}</td></tr>
-            </table>
-
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr><td colspan="2" style="padding:0;"><h4 style="color:var(--highlight); margin:0 0 2px 0;">4.5 NG-18 (Gouge)</h4></td></tr>
-                <tr><td style="width: 22%; padding:1px 0;">S_flow</td><td style="padding:1px 0;">= (SMYS + UTS) / 2 = (${smys} + ${uts}) / 2 = <strong>${sFlowNG.toFixed(2)} MPa</strong></td></tr>
-                <tr><td style="padding:1px 0;">d_eff</td><td style="padding:1px 0;">= depth + 0.5mm crack penalty = ${d.toFixed(2)} + 0.5 = <strong>${d_ng.toFixed(2)} mm</strong></td></tr>
-                <tr><td style="padding:1px 0;">M</td><td style="padding:1px 0;">= √(1 + 0.52 × (L / √(D×t))²) = <strong>${M_ng.toFixed(4)}</strong></td></tr>
-                <tr><td style="padding:1px 0;">Pf Formula</td><td style="padding:1px 0;">= S_flow × (2t / D) × [ (1 - (d_ng/t)) / (1 - (d_ng/t)/M) ]</td></tr>
-                <tr><td style="padding:1px 0;">Pf Calculation</td><td style="padding:1px 0;">= ${sFlowNG.toFixed(2)} × ${(2*t/D).toFixed(4)} × [ ${(1 - (d_ng/t)).toFixed(4)} / ${(1 - (d_ng/t)/M_ng).toFixed(4)} ] = <strong>${pfNG.toFixed(2)} MPa</strong></td></tr>
-                <tr><td colspan="2" style="color:var(--success-text); font-weight:bold; padding:2px 0 0 0;">Final: ${c(pfNG)} ${u_P_disp}</td></tr>
-            </table>
-        `;
-
-        document.getElementById('dynamic-calc-content').innerHTML = html;
-    }
-
-     // --- CHART GENERATORS ---
-    function updateChart(L, t, rbpString, method) {
-        const container = document.getElementById('chart-container');
-        if (method !== 'rstreng' || !rbpString || rbpString.trim() === "") {
-            container.style.display = 'none'; return;
-        }
-        container.style.display = 'block';
-        
-        let depths = rbpString.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
-        if (depths.length === 0) return;
-        
-        let labels = []; let dataPoints = []; let spacing = L / (depths.length > 1 ? depths.length - 1 : 1);
-        for(let i=0; i<depths.length; i++) { labels.push((i*spacing).toFixed(1) + 'mm'); dataPoints.push(-depths[i]); }
-        
-        const ctx = document.getElementById('rbpChart').getContext('2d');
-        if(rbpChartInstance) rbpChartInstance.destroy();
-        rbpChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: { labels: labels, datasets: [{ label: 'Metal Loss Profile', data: dataPoints, borderColor: '#f87171', backgroundColor: 'rgba(248, 113, 113, 0.2)', borderWidth: 2, fill: true, tension: 0.3 }, { label: 'Inner Pipe Wall', data: Array(depths.length).fill(-t), borderColor: '#94a3b8', borderDash: [5, 5], borderWidth: 2, fill: false, pointRadius: 0 }] },
-            options: { responsive: true, scales: { y: { max: 0, min: -t * 1.1, title: { display: true, text: 'Wall Depth' } }, x: { title: { display: true, text: 'Axial Length' } } } }
-        });
-    }
-
-    function updateAcceptanceChart(D, t, smys, uts, grade, sf, maop_base, c_len, L_input, d_input) {
-        const targetPf = maop_base * sf; const sFlowMod = getSFlow(grade, smys, uts, 'b31g_mod');
-        let d_orig = []; let d_mod = []; let d_rst = []; let d_kastner = []; let d_ng18 = [];
-        
-        let max_L = Math.max(600, L_input * 1.5);
-        for (let l = 10; l <= max_L; l += 20) {
-            d_orig.push({x: l, y: solveForDepth((l_val, d_val) => calcB31G_Orig(D, t, l_val, d_val, smys), l, targetPf, t)});
-            d_mod.push({x: l, y: solveForDepth((l_val, d_val) => calcB31G_Mod(D, t, l_val, d_val, sFlowMod), l, targetPf, t)});
-            d_rst.push({x: l, y: solveForDepth((l_val, d_val) => calcRSTRENG(D, t, l_val, d_val, sFlowMod, ""), l, targetPf, t)});
-            d_kastner.push({x: l, y: solveForDepth((l_val, d_val) => calcKastner(D, t, c_len, d_val, smys), l, targetPf, t)});
-            d_ng18.push({x: l, y: solveForDepth((l_val, d_val) => calcNG18(D, t, l_val, d_val, smys, uts), l, targetPf, t)});
+            const ctx = document.getElementById('rbpChart').getContext('2d');
+            if(rbpChartInstance) rbpChartInstance.destroy();
+            rbpChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels: labels, datasets: [{ label: 'Metal Loss Profile', data: dataPoints, borderColor: '#f87171', backgroundColor: 'rgba(248, 113, 113, 0.2)', borderWidth: 2, fill: true, tension: 0.3 }, { label: 'Inner Pipe Wall', data: Array(depths.length).fill(-t), borderColor: textColor, borderDash: [5, 5], borderWidth: 2, fill: false, pointRadius: 0 }] },
+                options: { 
+                    responsive: true, 
+                    color: textColor,
+                    scales: { 
+                        y: { max: 0, min: -t * 1.1, title: { display: true, text: 'Wall Depth', color: textColor }, ticks: { color: textColor }, grid: { color: gridColor } }, 
+                        x: { title: { display: true, text: 'Axial Length', color: textColor }, ticks: { color: textColor }, grid: { color: gridColor } } 
+                    },
+                    plugins: { legend: { labels: { color: textColor } } }
+                }
+            });
         }
 
-        const ctx = document.getElementById('acceptanceChart').getContext('2d');
-        if(acceptanceChartInstance) acceptanceChartInstance.destroy();
+        function updateAcceptanceChart(D, t, smys, uts, grade, sf, maop_base, c_len, L_input, d_input) {
+            const targetPf = maop_base * sf; const sFlowMod = getSFlow(grade, smys, uts, 'b31g_mod');
+            let d_orig = []; let d_mod = []; let d_rst = []; let d_kastner = []; let d_ng18 = [];
+            
+            let max_L = Math.max(600, L_input * 1.5);
+            for (let l = 10; l <= max_L; l += 20) {
+                d_orig.push({x: l, y: solveForDepth((l_val, d_val) => calcB31G_Orig(D, t, l_val, d_val, smys), l, targetPf, t)});
+                d_mod.push({x: l, y: solveForDepth((l_val, d_val) => calcB31G_Mod(D, t, l_val, d_val, sFlowMod), l, targetPf, t)});
+                d_rst.push({x: l, y: solveForDepth((l_val, d_val) => calcRSTRENG(D, t, l_val, d_val, sFlowMod, ""), l, targetPf, t)});
+                d_kastner.push({x: l, y: solveForDepth((l_val, d_val) => calcKastner(D, t, c_len, d_val, smys), l, targetPf, t)});
+                d_ng18.push({x: l, y: solveForDepth((l_val, d_val) => calcNG18(D, t, l_val, d_val, smys, uts), l, targetPf, t)});
+            }
 
-        acceptanceChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                datasets: [
-                    { label: 'B31G Orig', data: d_orig, borderColor: '#3b82f6', borderWidth: 2, fill: false, pointRadius: 0, tension: 0.2 },
-                    { label: 'B31G Mod', data: d_mod, borderColor: '#10b981', borderWidth: 2, fill: false, pointRadius: 0, tension: 0.2 },
-                    { label: 'RSTRENG (Para)', data: d_rst, borderColor: '#f59e0b', borderWidth: 2, fill: false, pointRadius: 0, tension: 0.2 },
-                    { label: 'Kastner', data: d_kastner, borderColor: '#8b5cf6', borderDash: [5,5], borderWidth: 2, fill: false, pointRadius: 0 },
-                    { label: 'NG-18', data: d_ng18, borderColor: '#ef4444', borderWidth: 2, fill: false, pointRadius: 0, tension: 0.2 },
-                    { type: 'scatter', label: 'Current Anomaly', data: [{x: L_input, y: d_input}], backgroundColor: '#1e293b', borderColor: '#ffffff', borderWidth: 2, radius: 6 }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { min: 0, max: t, title: { display: true, text: 'Allowable Depth (mm)' } },
-                    x: { type: 'linear', min: 0, max: max_L, title: { display: true, text: 'Defect Length (mm)' } }
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#94a3b8';
+            const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--card-border').trim() || '#334155';
+            
+            const ctx = document.getElementById('acceptanceChart').getContext('2d');
+            if(acceptanceChartInstance) acceptanceChartInstance.destroy();
+
+            acceptanceChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        { label: 'B31G Orig', data: d_orig, borderColor: '#00A5A8', borderWidth: 2, fill: false, pointRadius: 0, tension: 0.2 },
+                        { label: 'B31G Mod', data: d_mod, borderColor: '#10b981', borderWidth: 2, fill: false, pointRadius: 0, tension: 0.2 },
+                        { label: 'RSTRENG (Para)', data: d_rst, borderColor: '#f59e0b', borderWidth: 2, fill: false, pointRadius: 0, tension: 0.2 },
+                        { label: 'Kastner', data: d_kastner, borderColor: '#8b5cf6', borderDash: [5,5], borderWidth: 2, fill: false, pointRadius: 0 },
+                        { label: 'NG-18', data: d_ng18, borderColor: '#ef4444', borderWidth: 2, fill: false, pointRadius: 0, tension: 0.2 },
+                        { type: 'scatter', label: 'Current Anomaly', data: [{x: L_input, y: d_input}], backgroundColor: '#F37021', borderColor: '#ffffff', borderWidth: 2, radius: 6 }
+                    ]
                 },
-                plugins: { 
-                    legend: { position: 'bottom', labels: { boxWidth: 12 } },
-                    tooltip: {
-                        callbacks: {
-                            title: function() { return ''; },
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) { label += ': '; }
-                                if (context.parsed.y !== null) { label += `L = ${context.parsed.x.toFixed(1)} mm, d = ${context.parsed.y.toFixed(2)} mm`; }
-                                return label;
+                options: {
+                    responsive: true,
+                    color: textColor,
+                    scales: {
+                        y: { min: 0, max: t, title: { display: true, text: 'Allowable Depth (mm)', color: textColor }, ticks: { color: textColor }, grid: { color: gridColor } },
+                        x: { type: 'linear', min: 0, max: max_L, title: { display: true, text: 'Defect Length (mm)', color: textColor }, ticks: { color: textColor }, grid: { color: gridColor } }
+                    },
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { boxWidth: 12, color: textColor } },
+                        tooltip: {
+                            callbacks: {
+                                title: function() { return ''; },
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) { label += `L = ${context.parsed.x.toFixed(1)} mm, d = ${context.parsed.y.toFixed(2)} mm`; }
+                                    return label;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
-    }
-
-            // --- PROFESSIONAL VECTOR PDF GENERATOR (PDFMAKE) ---
-    function generatePDF() {
-        showToast("Generating Optimized PDF Report...");
-        
-        const dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        const u_L = document.getElementById('sel-od-unit').value;
-        const u_wt = document.getElementById('sel-wt-unit').value;
-        const u_P = document.getElementById('sel-press-unit').value;
-        const u_P_disp = (u_P === 'kgcm2') ? 'kg/cm²' : u_P;
-
-        let depth_val_pdf = "";
-        if (!document.getElementById('d_pct').disabled && document.getElementById('d_pct').value !== "") {
-            depth_val_pdf = `${document.getElementById('d').value} ${u_wt} (${document.getElementById('d_pct').value} %)`;
-        } else {
-            depth_val_pdf = `${document.getElementById('d').value} ${u_wt}`;
+            });
         }
 
-        const inputTable = {
-            table: {
-                widths: ['25%', '25%', '25%', '25%'],
-                body: [
-                    [{text: 'Pipe Diameter (D)', style: 'th'}, `${document.getElementById('D').value} ${u_L}`, {text: 'Material Grade', style: 'th'}, document.getElementById('sel-grade').options[document.getElementById('sel-grade').selectedIndex].text],
-                    [{text: 'Wall Thickness (t)', style: 'th'}, `${document.getElementById('t').value} ${u_wt}`, {text: 'SMYS / UTS', style: 'th'}, `${document.getElementById('SMYS').value} / ${document.getElementById('UTS').value} MPa`],
-                    [{text: 'Max Depth (d)', style: 'th'}, {text: depth_val_pdf, color: '#d97706', bold: true}, {text: 'Safety Factor', style: 'th'}, document.getElementById('SF').value],
-                    [{text: 'Defect Length (L)', style: 'th'}, `${document.getElementById('L').value} ${u_wt}`, {text: 'MAOP', style: 'th'}, `${document.getElementById('MAOP').value} ${u_P_disp}`]
-                ]
-            },
-            layout: { 
-                fillColor: function (rowIndex, node, columnIndex) { return (columnIndex % 2 === 0) ? '#f8fafc' : null; },
-                paddingTop: function(i, node) { return 3; }, paddingBottom: function(i, node) { return 3; }
-            },
-            margin: [0, 0, 0, 10]
-        };
+        // --- PROFESSIONAL VECTOR PDF GENERATOR (PDFMAKE) ---
+        function generatePDF() {
+            showToast("Generating Optimized PDF Report...");
+            
+            const dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            const u_L = document.getElementById('sel-od-unit').value;
+            const u_wt = document.getElementById('sel-wt-unit').value;
+            const u_P = document.getElementById('sel-press-unit').value;
+            const u_P_disp = (u_P === 'kgcm2') ? 'kg/cm²' : u_P;
 
-        // --- NEW: SELECTED ROW HIGHLIGHT LOGIC ---
-        let resultsBody = [[{text: 'Method', style: 'thh'}, {text: 'Pf', style: 'thh'}, {text: 'Psafe', style: 'thh'}, {text: 'ERF', style: 'thh'}, {text: 'Status', style: 'thh'}]];
-        
-        const selectedMethodId = document.getElementById('sel-method').value;
+            let depth_val_pdf = "";
+            if (!document.getElementById('d_pct').disabled && document.getElementById('d_pct').value !== "") {
+                depth_val_pdf = `${document.getElementById('d').value} ${u_wt} (${document.getElementById('d_pct').value} %)`;
+            } else {
+                depth_val_pdf = `${document.getElementById('d').value} ${u_wt}`;
+            }
 
-        document.querySelectorAll('#result-body tr').forEach(tr => {
-            let row = [];
-            const isSelected = (tr.dataset.method === selectedMethodId);
-            const rowHighlightColor = isSelected ? '#e2e8f0' : null; // Subtle highlight for the selected method
+            const inputTable = {
+                table: {
+                    widths: ['25%', '25%', '25%', '25%'],
+                    body: [
+                        [{text: 'Pipe Diameter (D)', style: 'th'}, `${document.getElementById('D').value} ${u_L}`, {text: 'Material Grade', style: 'th'}, document.getElementById('sel-grade').options[document.getElementById('sel-grade').selectedIndex].text],
+                        [{text: 'Wall Thickness (t)', style: 'th'}, `${document.getElementById('t').value} ${u_wt}`, {text: 'SMYS / UTS', style: 'th'}, `${document.getElementById('SMYS').value} / ${document.getElementById('UTS').value} MPa`],
+                        [{text: 'Max Depth (d)', style: 'th'}, {text: depth_val_pdf, color: '#F37021', bold: true}, {text: 'Safety Factor', style: 'th'}, document.getElementById('SF').value],
+                        [{text: 'Defect Length (L)', style: 'th'}, `${document.getElementById('L').value} ${u_wt}`, {text: 'MAOP', style: 'th'}, `${document.getElementById('MAOP').value} ${u_P_disp}`]
+                    ]
+                },
+                layout: { 
+                    fillColor: function (rowIndex, node, columnIndex) { return (columnIndex % 2 === 0) ? '#f8fafc' : null; },
+                    paddingTop: function(i, node) { return 3; }, paddingBottom: function(i, node) { return 3; }
+                },
+                margin: [0, 0, 0, 10]
+            };
 
-            tr.querySelectorAll('td').forEach(td => {
-                let color = '#333333';
-                if(td.innerText.includes('Repair') || td.innerText.includes('>80%')) color = '#dc2626';
-                if(td.innerText === 'OK') color = '#16a34a';
-                
-                row.push({ 
-                    text: td.innerText, 
-                    color: color, 
-                    bold: td.style.fontWeight === '600' || td.querySelector('strong') ? true : false,
-                    fillColor: rowHighlightColor // Applies the highlight dynamically
+            let resultsBody = [[{text: 'Method', style: 'thh'}, {text: 'Pf', style: 'thh'}, {text: 'Psafe', style: 'thh'}, {text: 'ERF', style: 'thh'}, {text: 'Status', style: 'thh'}]];
+            
+            const selectedMethodId = document.getElementById('sel-method').value;
+
+            document.querySelectorAll('#result-body tr').forEach(tr => {
+                let row = [];
+                const isSelected = (tr.dataset.method === selectedMethodId);
+                const rowHighlightColor = isSelected ? '#e2e8f0' : null; 
+
+                tr.querySelectorAll('td').forEach(td => {
+                    let color = '#333333';
+                    if(td.innerText.includes('Repair') || td.innerText.includes('>80%')) color = '#dc2626';
+                    if(td.innerText === 'OK') color = '#16a34a';
+                    
+                    row.push({ 
+                        text: td.innerText, 
+                        color: color, 
+                        bold: td.style.fontWeight === '600' || td.querySelector('strong') ? true : false,
+                        fillColor: rowHighlightColor 
+                    });
                 });
+                resultsBody.push(row);
             });
-            resultsBody.push(row);
-        });
 
-        const resultsTable = {
-            table: { widths: ['*', 'auto', 'auto', 'auto', 'auto'], body: resultsBody },
-            layout: { 
-                hLineWidth: function (i, node) { return 1; }, vLineWidth: function (i, node) { return 0; },
-                hLineColor: function (i, node) { return '#cccccc'; },
-                paddingTop: function(i, node) { return 3; }, paddingBottom: function(i, node) { return 3; }
-            },
-            margin: [0, 0, 0, 10]
-        };
+            const resultsTable = {
+                table: { widths: ['*', 'auto', 'auto', 'auto', 'auto'], body: resultsBody },
+                layout: { 
+                    hLineWidth: function (i, node) { return 1; }, vLineWidth: function (i, node) { return 0; },
+                    hLineColor: function (i, node) { return '#cccccc'; },
+                    paddingTop: function(i, node) { return 3; }, paddingBottom: function(i, node) { return 3; }
+                },
+                margin: [0, 0, 0, 10]
+            };
 
-        // --- SECTION 3: CHARTS SETUP ---
-        let chartColumns = [];
-        const method = document.getElementById('sel-method').value;
-        const rbpCanvas = document.getElementById('rbpChart');
-        if (method === 'rstreng' && rbpCanvas.style.display !== 'none') {
+            // --- SECTION 3: CHARTS SETUP ---
+            let chartColumns = [];
+            const method = document.getElementById('sel-method').value;
+            const rbpCanvas = document.getElementById('rbpChart');
+            if (method === 'rstreng' && rbpCanvas.style.display !== 'none') {
+                chartColumns.push({
+                    stack: [
+                        { text: 'River Bottom Profile', style: 'chartTitle', alignment: 'center' },
+                        { image: rbpCanvas.toDataURL('image/png', 1.0), width: 240, alignment: 'center' }
+                    ]
+                });
+            }
+            
+            const acceptCanvas = document.getElementById('acceptanceChart');
             chartColumns.push({
                 stack: [
-                    { text: 'River Bottom Profile', style: 'chartTitle', alignment: 'center' },
-                    { image: rbpCanvas.toDataURL('image/png', 1.0), width: 240, alignment: 'center' }
+                    { text: 'Acceptance Curve (Length vs. Depth)', style: 'chartTitle', alignment: 'center' },
+                    { image: acceptCanvas.toDataURL('image/png', 1.0), width: (chartColumns.length > 0) ? 240 : 400, alignment: 'center' }
                 ]
             });
-        }
-        
-        const acceptCanvas = document.getElementById('acceptanceChart');
-        chartColumns.push({
-            stack: [
-                { text: 'Acceptance Curve (Length vs. Depth)', style: 'chartTitle', alignment: 'center' },
-                { image: acceptCanvas.toDataURL('image/png', 1.0), width: (chartColumns.length > 0) ? 240 : 400, alignment: 'center' }
-            ]
-        });
 
-        let chartsContent = [{ columns: chartColumns, columnGap: 15, margin: [0, 5, 0, 10] }];
+            let chartsContent = [{ columns: chartColumns, columnGap: 15, margin: [0, 5, 0, 10] }];
 
-        // --- SECTION 4: MATH SETUP ---
-        let rawHtml = document.getElementById('dynamic-calc-content').innerHTML;
-        rawHtml = rawHtml.replace(/var\(--highlight\)/g, '#0B3B60')
-                         .replace(/var\(--success-text\)/g, '#16a34a')
-                         .replace(/var\(--bg-input\)/g, '#f1f5f9')
-                         .replace(/var\(--border-color\)/g, '#cccccc')
-                         .replace(/var\(--danger-text\)/g, '#dc2626');
-                         
-        var htmlMath = window.htmlToPdfmake(rawHtml, {
-            defaultStyles: {
-                h4: { fontSize: 9, bold: true, color: '#0B3B60', margin: [0, 2, 0, 1] },
-                div: { fontSize: 8, margin: [0, 1, 0, 1] },
-                table: { margin: [0, 0, 0, 2] } 
-            }
-        });
-
-        // Recursively remove heavy default borders from the generated tables so they look like aligned text
-        function removeTableBorders(nodes) {
-            if (!nodes) return;
-            if (Array.isArray(nodes)) {
-                nodes.forEach(removeTableBorders);
-            } else if (typeof nodes === 'object') {
-                if (nodes.table) {
-                    nodes.layout = 'noBorders';
+            // --- SECTION 4: MATH SETUP ---
+            let rawHtml = document.getElementById('dynamic-calc-content').innerHTML;
+            rawHtml = rawHtml.replace(/var\(--accent-teal\)/g, '#00A5A8')
+                             .replace(/var\(--accent-orange\)/g, '#F37021')
+                             .replace(/var\(--success-text\)/g, '#16a34a')
+                             .replace(/var\(--metric-bg\)/g, '#f1f5f9')
+                             .replace(/var\(--card-border\)/g, '#cccccc')
+                             .replace(/var\(--danger-text\)/g, '#dc2626');
+                             
+            var htmlMath = window.htmlToPdfmake(rawHtml, {
+                defaultStyles: {
+                    h4: { fontSize: 9, bold: true, color: '#00A5A8', margin: [0, 2, 0, 1] },
+                    div: { fontSize: 8, margin: [0, 1, 0, 1] },
+                    table: { margin: [0, 0, 0, 2] } 
                 }
-                if (nodes.stack) removeTableBorders(nodes.stack);
-                if (nodes.columns) removeTableBorders(nodes.columns);
+            });
+
+            function removeTableBorders(nodes) {
+                if (!nodes) return;
+                if (Array.isArray(nodes)) {
+                    nodes.forEach(removeTableBorders);
+                } else if (typeof nodes === 'object') {
+                    if (nodes.table) {
+                        nodes.layout = 'noBorders';
+                    }
+                    if (nodes.stack) removeTableBorders(nodes.stack);
+                    if (nodes.columns) removeTableBorders(nodes.columns);
+                }
             }
+            removeTableBorders(htmlMath);
+
+            // --- FINAL DOCUMENT ASSEMBLY ---
+            var docDefinition = {
+                info: { title: 'Integrity Assessment Report' },
+                content: [
+                    { text: 'Integrity Assessment Report', style: 'header' },
+                    { text: 'Natural Gas Pipeline Operations & Maintenance', style: 'subheader' },
+                    { text: `Assessment Date: ${dateStr}\nGoverning Code: Industry Standards`, alignment: 'right', fontSize: 9, margin: [0, -30, 0, 8] },
+                    
+                    { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1.5, lineColor: '#00A5A8' } ], margin: [0, 0, 0, 8] },
+                    
+                    { text: '1. Pipeline & Anomaly Parameters', style: 'sectionHeader' },
+                    inputTable,
+                    
+                    { text: '2. Remaining Strength Evaluation', style: 'sectionHeader' },
+                    resultsTable,
+                    
+                    { text: '3. Integrity Visualizations', style: 'sectionHeader' },
+                    ...chartsContent,
+                    
+                    { text: '4. Analytical Calculation Breakdown', style: 'sectionHeader' },
+                    htmlMath,
+
+                    { text: 'This automated calculation is for guidance purposes only. Final integrity decisions must be validated by a qualified engineer.', fontSize: 8, color: '#777', alignment: 'center', margin: [0, 15, 0, 0] }
+                ],
+                styles: {
+                    header: { fontSize: 16, bold: true, color: '#00A5A8', margin: [0, 0, 0, 0] },
+                    subheader: { fontSize: 11, bold: true, color: '#F37021', margin: [0, 2, 0, 5] },
+                    sectionHeader: { fontSize: 10, bold: true, color: '#00A5A8', margin: [0, 4, 0, 2] },
+                    chartTitle: { fontSize: 9, bold: true, color: '#333333', margin: [0, 0, 0, 5] },
+                    th: { bold: true, color: '#333', fontSize: 8 },
+                    thh: { bold: true, fillColor: '#00A5A8', color: '#ffffff', fontSize: 8 }
+                },
+                defaultStyle: { font: 'Roboto', fontSize: 8, lineHeight: 1.1 }
+            };
+
+            pdfMake.createPdf(docDefinition).download(`Integrity_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+            setTimeout(() => { showToast("PDF Downloaded!"); }, 500);
         }
-        removeTableBorders(htmlMath);
 
-        // --- FINAL DOCUMENT ASSEMBLY ---
-        var docDefinition = {
-            info: { title: 'Integrity Assessment Report' },
-            content: [
-                { text: 'Integrity Assessment Report', style: 'header' },
-                { text: 'Natural Gas Pipeline Operations & Maintenance', style: 'subheader' },
-                { text: `Assessment Date: ${dateStr}\nGoverning Code: Industry Standards`, alignment: 'right', fontSize: 9, margin: [0, -30, 0, 8] },
-                
-                { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1.5, lineColor: '#0B3B60' } ], margin: [0, 0, 0, 8] },
-                
-                { text: '1. Pipeline & Anomaly Parameters', style: 'sectionHeader' },
-                inputTable,
-                
-                { text: '2. Remaining Strength Evaluation', style: 'sectionHeader' },
-                resultsTable,
-                
-                { text: '3. Integrity Visualizations', style: 'sectionHeader' },
-                ...chartsContent,
-                
-                { text: '4. Analytical Calculation Breakdown', style: 'sectionHeader' },
-                htmlMath,
+        // --- INITIALIZATION & UTILS ---
+        function init() {
+            setupDepthToggle();
 
-                // DISCLAIMER MOVED TO THE ABSOLUTE BOTTOM
-                { text: 'This automated calculation is for guidance purposes only. Final integrity decisions must be validated by a qualified engineer.', fontSize: 8, color: '#777', alignment: 'center', margin: [0, 15, 0, 0] }
-            ],
-            styles: {
-                header: { fontSize: 16, bold: true, color: '#0B3B60', margin: [0, 0, 0, 0] },
-                subheader: { fontSize: 11, bold: true, color: '#FF7F00', margin: [0, 2, 0, 5] },
-                sectionHeader: { fontSize: 10, bold: true, color: '#0B3B60', margin: [0, 4, 0, 2] },
-                chartTitle: { fontSize: 9, bold: true, color: '#333333', margin: [0, 0, 0, 5] },
-                th: { bold: true, color: '#333', fontSize: 8 },
-                thh: { bold: true, fillColor: '#0B3B60', color: '#ffffff', fontSize: 8 }
-            },
-            defaultStyle: { font: 'Roboto', fontSize: 8, lineHeight: 1.1 }
-        };
+            const npsSel = document.getElementById('sel-nps'); Object.keys(NPS_DATA).forEach(n => npsSel.appendChild(new Option(`NPS ${n}"`, n))); npsSel.value = "36"; npsSel.addEventListener('change', () => { document.getElementById('D').value = NPS_DATA[npsSel.value]; calculate(); });
+            const wtSel = document.getElementById('sel-std-wt'); STD_WALLS.forEach(w => wtSel.appendChild(new Option(`${w.toFixed(1)} mm`, w))); wtSel.value = "15.9"; wtSel.addEventListener('change', () => { document.getElementById('t').value = wtSel.value; 
+                const d_val = parseFloat(document.getElementById('d').value); const t_val = parseFloat(document.getElementById('t').value);
+                if (!isNaN(d_val) && !isNaN(t_val) && t_val > 0) { document.getElementById('d_pct').value = ((d_val / t_val) * 100).toFixed(2); }
+                calculate(); 
+            });
+            const gradeSel = document.getElementById('sel-grade'); Object.keys(API_GRADES).forEach(g => gradeSel.appendChild(new Option(`API 5L ${g}`, g))); gradeSel.value = "X70"; gradeSel.addEventListener('change', () => { const g = API_GRADES[gradeSel.value]; document.getElementById('SMYS').value = g.smys; document.getElementById('UTS').value = g.uts; calculate(); });
 
-        pdfMake.createPdf(docDefinition).download(`Integrity_Report_${new Date().toISOString().slice(0,10)}.pdf`);
-        setTimeout(() => { showToast("PDF Downloaded!"); }, 500);
-    }
+            document.querySelectorAll('.calc-trigger').forEach(el => { el.addEventListener('input', calculate); el.addEventListener('change', calculate); });
+            document.querySelectorAll('.unit-change-trigger').forEach(el => el.addEventListener('change', handleUnitChange));
+            updateUIUnitLabels();
+            
+            const init_d = parseFloat(document.getElementById('d').value); const init_t = parseFloat(document.getElementById('t').value);
+            if (!isNaN(init_d) && !isNaN(init_t)) { document.getElementById('d_pct').value = ((init_d / init_t) * 100).toFixed(2); }
+            
+            calculate();
+        }
 
-    // --- INITIALIZATION & UTILS ---
-    function init() {
-        initTheme();
-        setupDepthToggle();
+        function toggleMenu() { document.getElementById('main-menu').classList.toggle('show'); }
+        function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
 
-        const npsSel = document.getElementById('sel-nps'); Object.keys(NPS_DATA).forEach(n => npsSel.appendChild(new Option(`NPS ${n}"`, n))); npsSel.value = "36"; npsSel.addEventListener('change', () => { document.getElementById('D').value = NPS_DATA[npsSel.value]; calculate(); });
-        const wtSel = document.getElementById('sel-std-wt'); STD_WALLS.forEach(w => wtSel.appendChild(new Option(`${w.toFixed(1)} mm`, w))); wtSel.value = "15.9"; wtSel.addEventListener('change', () => { document.getElementById('t').value = wtSel.value; 
-            const d_val = parseFloat(document.getElementById('d').value); const t_val = parseFloat(document.getElementById('t').value);
-            if (!isNaN(d_val) && !isNaN(t_val) && t_val > 0) { document.getElementById('d_pct').value = ((d_val / t_val) * 100).toFixed(2); }
-            calculate(); 
-        });
-        const gradeSel = document.getElementById('sel-grade'); Object.keys(API_GRADES).forEach(g => gradeSel.appendChild(new Option(`API 5L ${g}`, g))); gradeSel.value = "X70"; gradeSel.addEventListener('change', () => { const g = API_GRADES[gradeSel.value]; document.getElementById('SMYS').value = g.smys; document.getElementById('UTS').value = g.uts; calculate(); });
-
-        document.querySelectorAll('.calc-trigger').forEach(el => { el.addEventListener('input', calculate); el.addEventListener('change', calculate); });
-        document.querySelectorAll('.unit-change-trigger').forEach(el => el.addEventListener('change', handleUnitChange));
-        updateUIUnitLabels();
+        function handleMenuAction(act) {
+            document.getElementById('main-menu').classList.remove('show');
+            if(act === 'scenario') { document.getElementById('modal-scenarios').style.display = 'flex'; renderScenarioList(); }
+            if(act === 'explain') { document.getElementById('modal-explanation').style.display = 'flex'; }
+            if(act === 'pdf') generatePDF(); 
+            if(act === 'share') copyShareLink();
+            if(act === 'template') { const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["ID", "D", "t", "L", "d", "c_len"], ["ANOM-01", 36, 15.9, 150, 5.5, 50]]), "Anomalies"); XLSX.writeFile(wb, "Template.xlsx"); }
+        }
         
-        const init_d = parseFloat(document.getElementById('d').value); const init_t = parseFloat(document.getElementById('t').value);
-        if (!isNaN(init_d) && !isNaN(init_t)) { document.getElementById('d_pct').value = ((init_d / init_t) * 100).toFixed(2); }
-        
-        calculate();
-    }
+        function closeModal() { document.getElementById('modal-scenarios').style.display = 'none'; }
+        function saveScenario() { const name = document.getElementById('scenario-name').value; if (!name) return; let s = JSON.parse(localStorage.getItem('pipelineScenarios') || '[]'); let d = {}; document.querySelectorAll('input:not([type="file"]), select').forEach(el => d[el.id] = el.value); s.push({ id: Date.now(), name: name, data: d }); localStorage.setItem('pipelineScenarios', JSON.stringify(s)); document.getElementById('scenario-name').value = ''; showToast("Saved!"); renderScenarioList(); }
+        function renderScenarioList() { document.getElementById('list-scenarios').innerHTML = JSON.parse(localStorage.getItem('pipelineScenarios') || '[]').map(s => `<div class="scenario-item"><span style="font-weight:600;">${s.name}</span><div><button class="btn-action" style="margin-right:8px;" onclick="loadScenario(${s.id})">Load</button><button class="btn-action" style="border-color:var(--danger-text); color:var(--danger-text);" onclick="deleteScenario(${s.id})">X</button></div></div>`).join(''); }
+        function loadScenario(id) { let s = JSON.parse(localStorage.getItem('pipelineScenarios') || '[]').find(x => x.id === id); if (s) { Object.keys(s.data).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = s.data[k]; }); calculate(); closeModal(); showToast("Loaded!"); } }
+        function deleteScenario(id) { localStorage.setItem('pipelineScenarios', JSON.stringify(JSON.parse(localStorage.getItem('pipelineScenarios') || '[]').filter(s => s.id !== id))); renderScenarioList(); }
+        function copyShareLink() { const p = new URLSearchParams(); document.querySelectorAll('input:not([type="file"]), select').forEach(el => { if (el.id && el.value) p.append(el.id, el.value); }); navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?${p.toString()}`).then(() => showToast("Copied!")); }
 
-    function toggleMenu() { document.getElementById('main-menu').classList.toggle('show'); }
-    function toggleTheme() { const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', next); localStorage.setItem('pipelineIntTheme', next); }
-    function initTheme() { document.documentElement.setAttribute('data-theme', localStorage.getItem('pipelineIntTheme') || 'dark'); }
-    function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
-
-    function handleMenuAction(act) {
-        document.getElementById('main-menu').classList.remove('show');
-        if(act === 'scenario') { document.getElementById('modal-scenarios').style.display = 'flex'; renderScenarioList(); }
-        if(act === 'explain') { document.getElementById('modal-explanation').style.display = 'flex'; }
-        if(act === 'pdf') generatePDF(); 
-        if(act === 'share') copyShareLink();
-        if(act === 'template') { const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["ID", "D", "t", "L", "d", "c_len"], ["ANOM-01", 36, 15.9, 150, 5.5, 50]]), "Anomalies"); XLSX.writeFile(wb, "Template.xlsx"); }
-    }
-    
-    function closeModal() { document.getElementById('modal-scenarios').style.display = 'none'; }
-    function saveScenario() { const name = document.getElementById('scenario-name').value; if (!name) return; let s = JSON.parse(localStorage.getItem('pipelineScenarios') || '[]'); let d = {}; document.querySelectorAll('input:not([type="file"]), select').forEach(el => d[el.id] = el.value); s.push({ id: Date.now(), name: name, data: d }); localStorage.setItem('pipelineScenarios', JSON.stringify(s)); document.getElementById('scenario-name').value = ''; showToast("Saved!"); renderScenarioList(); }
-    function renderScenarioList() { document.getElementById('list-scenarios').innerHTML = JSON.parse(localStorage.getItem('pipelineScenarios') || '[]').map(s => `<div class="scenario-item"><span>${s.name}</span><div><button onclick="loadScenario(${s.id})">Load</button><button onclick="deleteScenario(${s.id})">X</button></div></div>`).join(''); }
-    function loadScenario(id) { let s = JSON.parse(localStorage.getItem('pipelineScenarios') || '[]').find(x => x.id === id); if (s) { Object.keys(s.data).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = s.data[k]; }); calculate(); closeModal(); showToast("Loaded!"); } }
-    function deleteScenario(id) { localStorage.setItem('pipelineScenarios', JSON.stringify(JSON.parse(localStorage.getItem('pipelineScenarios') || '[]').filter(s => s.id !== id))); renderScenarioList(); }
-    function copyShareLink() { const p = new URLSearchParams(); document.querySelectorAll('input:not([type="file"]), select').forEach(el => { if (el.id && el.value) p.append(el.id, el.value); }); navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?${p.toString()}`).then(() => showToast("Copied!")); }
-
-    document.getElementById('excel-upload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-            try {
-                const data = new Uint8Array(ev.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                showToast("File Loaded: " + file.name);
-            } catch(err) { showToast("Error parsing Excel file."); }
-        };
-        reader.readAsArrayBuffer(file);
-    });
-
-    // --- PWA SERVICE WORKER REGISTRATION ---
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('Service Worker Registered!', reg.scope))
-                .catch(err => console.log('Service Worker Registration Failed!', err));
+        document.getElementById('excel-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const data = new Uint8Array(ev.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    showToast("File Loaded: " + file.name);
+                } catch(err) { showToast("Error parsing Excel file."); }
+            };
+            reader.readAsArrayBuffer(file);
         });
-    }
 
-    // Existing init call
-    window.onload = init;
-</script>
+        // --- PWA SERVICE WORKER REGISTRATION ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker Registered!', reg.scope))
+                    .catch(err => console.log('Service Worker Registration Failed!', err));
+            });
+        }
 
-<footer id="copyright-scroll" data-html2canvas-ignore>
-    <span class="copyright-inner">
-        Designed & Developed by Ramakrishna Mullapudi © 2026
-    </span>
-</footer>
-
+        window.onload = init;
+    </script>
 </body>
 </html>
