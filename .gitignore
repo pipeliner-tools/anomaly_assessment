@@ -1,0 +1,11 @@
+# Developer scratch scripts and local test runners
+scratch/
+
+# Operating System files
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editor / IDE configuration
+.vscode/
+.idea/

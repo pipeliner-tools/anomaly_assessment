@@ -1,21 +1,55 @@
 {
-  "name": "Pipeline Integrity Assessment Tool",
-  "short_name": "Pipeline Int",
-  "description": "Offline-capable pipeline integrity assessment for ASME B31G, RSTRENG, Kastner, and NG-18.",
+  "id": "pipeline-anomaly-assessment-tool",
+  "name": "Pipeline Anomaly Assessment Tool",
+  "short_name": "PipeIntegrity",
+  "description": "Enterprise Pipeline Metal Loss & Defect Assessment Tool conforming to ASME B31G, Modified B31G, RSTRENG, API 579, and POF 100.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#1e293b",
+  "orientation": "any",
+  "background_color": "#070F15",
+  "theme_color": "#00A5A8",
+  "categories": ["productivity", "utilities", "business"],
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "./icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Single Assessment",
+      "short_name": "Single",
+      "description": "Assess a single pipeline anomaly",
+      "url": "./index.html?view=single",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Batch Assessment",
+      "short_name": "Batch",
+      "description": "Batch assessment of ILI inspection tallies",
+      "url": "./index.html?view=batch",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

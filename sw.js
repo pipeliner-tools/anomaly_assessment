@@ -1,55 +1,128 @@
-const CACHE_NAME = 'pipeline-integrity-v1';
+// Pipeline Anomaly Assessment Tool — PWA Service Worker
+const CACHE_NAME = 'pipe-integrity-pwa-v1.0.2';
 
-// We must cache the main HTML file AND all the external CDNs we used
-const URLS_TO_CACHE = [
-    './index.html',
-    './manifest.json',
-    'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
-    'https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js',
-    'https://cdn.jsdelivr.net/npm/html-to-pdfmake/browser.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
+// Assets to precache on installation (relative paths ensure GitHub Pages subpath compatibility)
+const PRECACHE_ASSETS = [
+  './',
+  './index.html',
+  './MLA.html',
+  './manifest.json',
+  './lib/chart.umd.min.js',
+  './lib/xlsx.full.min.js',
+  './lib/pdfmake.min.js',
+  './lib/vfs_fonts.js',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon-maskable.png',
+  './icons/icon.svg',
+  './favicon.svg',
+  './favicon.png',
+  './favicon.ico'
 ];
 
-// Install Event: Download everything into local device storage
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-        .then(cache => {
-            console.log('Opened cache');
-            return cache.addAll(URLS_TO_CACHE);
-        })
-    );
+// Installation: Cache core assets
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // Cache files individually with catch so one missing asset doesn't abort install
+      for (const asset of PRECACHE_ASSETS) {
+        try {
+          await cache.add(asset);
+        } catch (err) {
+          console.warn(`[Service Worker] Pre-cache skipped for ${asset}:`, err);
+        }
+      }
+    })
+  );
 });
 
-// Fetch Event: Serve from cache if offline, otherwise try network
-self.addEventListener('fetch', event => {
+// Activation: Clean up old caches & take immediate control
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            console.log('[Service Worker] Removing old cache:', key);
+            return caches.delete(key);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
+// Fetch Strategy:
+// - Navigation requests (HTML): Network-first with Cache fallback
+// - Static assets (JS, CSS, images): Cache-first with Network fallback and dynamic caching
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+
+  const url = new URL(req.url);
+
+  // HTML page navigations
+  if (req.mode === 'navigate' || req.headers.get('accept')?.includes('text/html')) {
     event.respondWith(
-        caches.match(event.request)
-        .then(response => {
-            // Return the cached version if found
-            if (response) {
-                return response;
-            }
-            // Otherwise, fetch from the network
-            return fetch(event.request);
+      fetch(req)
+        .then((networkRes) => {
+          if (networkRes && networkRes.status === 200) {
+            const resClone = networkRes.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+          }
+          return networkRes;
+        })
+        .catch(async () => {
+          const cached = await caches.match(req);
+          if (cached) return cached;
+          return (await caches.match('./index.html')) || (await caches.match('./MLA.html'));
         })
     );
-});
+    return;
+  }
 
-// Activate Event: Clean up old caches if we ever update to v2
-self.addEventListener('activate', event => {
-    const cacheWhitelist = [CACHE_NAME];
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        })
-    );
+  // Static assets & library files: Cache-first
+  event.respondWith(
+    caches.match(req).then((cachedRes) => {
+      if (cachedRes) {
+        // Fetch in background to revalidate cache if online
+        fetch(req).then((networkRes) => {
+          if (networkRes && (networkRes.status === 200 || networkRes.type === 'opaque')) {
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, networkRes));
+          }
+        }).catch(() => {});
+        return cachedRes;
+      }
+
+      return fetch(req).then((networkRes) => {
+        if (networkRes && (networkRes.status === 200 || networkRes.type === 'opaque')) {
+          const resClone = networkRes.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+        }
+        return networkRes;
+      }).catch(async (err) => {
+        console.warn('[Service Worker] Fetch failed for:', req.url, err);
+        // Robust cross-fallback for vendor libraries when offline
+        if (req.url.includes('xlsx')) {
+          return (await caches.match('./lib/xlsx.full.min.js')) ||
+                 (await caches.match('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js')) ||
+                 (await caches.match('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'));
+        }
+        if (req.url.includes('chart') || req.url.includes('Chart')) {
+          return (await caches.match('./lib/chart.umd.min.js')) ||
+                 (await caches.match('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js'));
+        }
+        if (req.url.includes('vfs_fonts')) {
+          return (await caches.match('./lib/vfs_fonts.js')) ||
+                 (await caches.match('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js'));
+        }
+        if (req.url.includes('pdfmake')) {
+          return (await caches.match('./lib/pdfmake.min.js')) ||
+                 (await caches.match('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js'));
+        }
+        return undefined;
+      });
+    })
+  );
 });
